@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { News, PaginatedResponse } from '../../types';
+import { Project, PaginatedResponse } from '../../types';
 
 // Async thunks
-export const fetchNews = createAsyncThunk(
-  'news/fetchNews',
+export const fetchProjects = createAsyncThunk(
+  'projects/fetchProjects',
   async (
     params: {
       page?: number;
@@ -31,25 +31,32 @@ export const fetchNews = createAsyncThunk(
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/news?${searchParams}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/projects?${searchParams}`,
         { headers },
       );
 
       if (!response.ok) {
         const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to fetch news');
+        return rejectWithValue(error.message || 'Failed to fetch projects');
       }
 
-      const data: PaginatedResponse<News> = await response.json();
-      return data;
+      const data: PaginatedResponse<Project> = await response.json();
+      return {
+        data,
+        total: data.total,
+        page: data.page,
+        limit: data.limit,
+        totalPages: data.totalPages,
+      };
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
 );
 
-export const fetchNewsById = createAsyncThunk(
-  'news/fetchNewsById',
+export const fetchProjectById = createAsyncThunk(
+  'projects/fetchProjectById',
   async (id: string, { rejectWithValue }) => {
     try {
       const accessToken = localStorage.getItem('accessToken');
@@ -62,26 +69,27 @@ export const fetchNewsById = createAsyncThunk(
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/news/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/projects/${id}`,
         { headers },
       );
 
       if (!response.ok) {
         const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to fetch news article');
+        return rejectWithValue(error.message || 'Failed to fetch project');
       }
 
-      const data: News = await response.json();
+      const data: Project = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
 );
 
-export const createNews = createAsyncThunk(
-  'news/createNews',
-  async (newsData: Partial<News>, { rejectWithValue }) => {
+export const createProject = createAsyncThunk(
+  'project/createProject',
+  async (newsData: Partial<Project>, { rejectWithValue }) => {
     try {
       const accessToken = localStorage.getItem('accessToken');
       if (!accessToken) {
@@ -89,7 +97,7 @@ export const createNews = createAsyncThunk(
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/news`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/projects`,
         {
           method: 'POST',
           headers: {
@@ -102,23 +110,22 @@ export const createNews = createAsyncThunk(
 
       if (!response.ok) {
         const error = await response.json();
-        return rejectWithValue(
-          error.message || 'Failed to create news article',
-        );
+        return rejectWithValue(error.message || 'Failed to create project');
       }
 
-      const data: News = await response.json();
+      const data: Project = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
 );
 
-export const updateNews = createAsyncThunk(
-  'news/updateNews',
+export const updateProject = createAsyncThunk(
+  'project/updateProject',
   async (
-    { id, newsData }: { id: string; newsData: Partial<News> },
+    { id, newsData }: { id: string; newsData: Partial<Project> },
     { rejectWithValue },
   ) => {
     try {
@@ -128,7 +135,7 @@ export const updateNews = createAsyncThunk(
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/news/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/project/${id}`,
         {
           method: 'PATCH',
           headers: {
@@ -141,21 +148,20 @@ export const updateNews = createAsyncThunk(
 
       if (!response.ok) {
         const error = await response.json();
-        return rejectWithValue(
-          error.message || 'Failed to update news article',
-        );
+        return rejectWithValue(error.message || 'Failed to update project');
       }
 
-      const data: News = await response.json();
+      const data: Project = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
 );
 
-export const deleteNews = createAsyncThunk(
-  'news/deleteNews',
+export const deleteProject = createAsyncThunk(
+  'project/deleteProject',
   async (id: string, { rejectWithValue }) => {
     try {
       const accessToken = localStorage.getItem('accessToken');
@@ -164,7 +170,7 @@ export const deleteNews = createAsyncThunk(
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/news/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/project/${id}`,
         {
           method: 'DELETE',
           headers: {
@@ -175,22 +181,21 @@ export const deleteNews = createAsyncThunk(
 
       if (!response.ok) {
         const error = await response.json();
-        return rejectWithValue(
-          error.message || 'Failed to delete news article',
-        );
+        return rejectWithValue(error.message || 'Failed to delete project');
       }
 
       return id;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
 );
 
 // State interface
-interface NewsState {
-  news: News[];
-  currentNews: News | null;
+interface ProjectState {
+  projectList: Project[];
+  currentProject: Project | null;
   loading: boolean;
   error: string | null;
   pagination: {
@@ -201,9 +206,9 @@ interface NewsState {
   };
 }
 
-const initialState: NewsState = {
-  news: [],
-  currentNews: null,
+const initialState: ProjectState = {
+  projectList: [],
+  currentProject: null,
   loading: false,
   error: null,
   pagination: {
@@ -214,30 +219,32 @@ const initialState: NewsState = {
   },
 };
 
-export const newsSlice = createSlice({
-  name: 'news',
+export const projectSlice = createSlice({
+  name: 'project',
   initialState,
   reducers: {
     clearError: (state) => {
       state.error = null;
     },
-    clearCurrentNews: (state) => {
-      state.currentNews = null;
+    clearCurrentProject: (state) => {
+      state.currentProject = null;
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
   },
   extraReducers: (builder) => {
-    // Fetch news
+    // Fetch Projects
     builder
-      .addCase(fetchNews.pending, (state) => {
+      .addCase(fetchProjects.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchNews.fulfilled, (state, action) => {
+      .addCase(fetchProjects.fulfilled, (state, action) => {
         state.loading = false;
-        state.news = action.payload.data;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        state.projectList = action.payload.data;
         state.pagination = {
           total: action.payload.total,
           page: action.payload.page,
@@ -245,78 +252,80 @@ export const newsSlice = createSlice({
           totalPages: action.payload.totalPages,
         };
       })
-      .addCase(fetchNews.rejected, (state, action) => {
+      .addCase(fetchProjects.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
 
-    // Fetch news by ID
+    // Fetch Project by ID
     builder
-      .addCase(fetchNewsById.pending, (state) => {
+      .addCase(fetchProjectById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchNewsById.fulfilled, (state, action) => {
+      .addCase(fetchProjectById.fulfilled, (state, action) => {
         state.loading = false;
-        state.currentNews = action.payload;
+        state.currentProject = action.payload;
       })
-      .addCase(fetchNewsById.rejected, (state, action) => {
+      .addCase(fetchProjectById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
 
-    // Create news
+    // Create Project
     builder
-      .addCase(createNews.pending, (state) => {
+      .addCase(createProject.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(createNews.fulfilled, (state, action) => {
+      .addCase(createProject.fulfilled, (state, action) => {
         state.loading = false;
-        state.news.unshift(action.payload);
+        state.projectList.unshift(action.payload);
       })
-      .addCase(createNews.rejected, (state, action) => {
+      .addCase(createProject.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
 
-    // Update news
+    // Update Project
     builder
-      .addCase(updateNews.pending, (state) => {
+      .addCase(updateProject.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateNews.fulfilled, (state, action) => {
+      .addCase(updateProject.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.news.findIndex(
+        const index = state.projectList.findIndex(
           (news) => news._id === action.payload._id,
         );
         if (index !== -1) {
-          state.news[index] = action.payload;
+          state.projectList[index] = action.payload;
         }
-        if (state.currentNews?._id === action.payload._id) {
-          state.currentNews = action.payload;
+        if (state.currentProject?._id === action.payload._id) {
+          state.currentProject = action.payload;
         }
       })
-      .addCase(updateNews.rejected, (state, action) => {
+      .addCase(updateProject.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
 
-    // Delete news
+    // Delete Project
     builder
-      .addCase(deleteNews.pending, (state) => {
+      .addCase(deleteProject.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteNews.fulfilled, (state, action) => {
+      .addCase(deleteProject.fulfilled, (state, action) => {
         state.loading = false;
-        state.news = state.news.filter((news) => news._id !== action.payload);
-        if (state.currentNews?._id === action.payload) {
-          state.currentNews = null;
+        state.projectList = state.projectList.filter(
+          (news) => news._id !== action.payload,
+        );
+        if (state.currentProject?._id === action.payload) {
+          state.currentProject = null;
         }
       })
-      .addCase(deleteNews.rejected, (state, action) => {
+      .addCase(deleteProject.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
@@ -324,17 +333,21 @@ export const newsSlice = createSlice({
 });
 
 // Actions
-export const { clearError, clearCurrentNews, setLoading } = newsSlice.actions;
+export const { clearError, clearCurrentProject, setLoading } =
+  projectSlice.actions;
 
 // Selectors
-export const selectNews = (state: { news: NewsState }) => state.news;
-export const selectNewsList = (state: { news: NewsState }) => state.news.news;
-export const selectCurrentNews = (state: { news: NewsState }) =>
-  state.news.currentNews;
-export const selectNewsLoading = (state: { news: NewsState }) =>
-  state.news.loading;
-export const selectNewsError = (state: { news: NewsState }) => state.news.error;
-export const selectNewsPagination = (state: { news: NewsState }) =>
-  state.news.pagination;
+export const selectProject = (state: { projects: ProjectState }) =>
+  state.projects;
+export const selectProjectList = (state: { projects: ProjectState }) =>
+  state.projects.projectList;
+export const selectCurrentProject = (state: { projects: ProjectState }) =>
+  state.projects.currentProject;
+export const selectProjectLoading = (state: { projects: ProjectState }) =>
+  state.projects.loading;
+export const selectProjectError = (state: { projects: ProjectState }) =>
+  state.projects.error;
+export const selectProjectPagination = (state: { projects: ProjectState }) =>
+  state.projects.pagination;
 
-export default newsSlice.reducer;
+export default projectSlice.reducer;

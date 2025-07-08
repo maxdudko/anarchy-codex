@@ -38,11 +38,30 @@ export interface RegisterRequest {
   bio?: string;
 }
 
-// News Interfaces
-export interface News {
+// Article Interfaces
+export interface Article {
   _id: string;
   title: string;
+  summary: string;
   content: string;
+  tags: string[];
+  author: {
+    _id: string;
+    pseudonym: string;
+    avatar?: string;
+  };
+  isPublished: boolean;
+  viewCount: number;
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Project Interfaces
+export interface Project {
+  _id: string;
+  title: string;
+  description: string;
   tags: string[];
   author: {
     _id: string;
@@ -92,11 +111,7 @@ export interface LibraryFile {
   tags: string[];
   language?: string;
   format?: string;
-  author: {
-    _id: string;
-    pseudonym: string;
-    avatar?: string;
-  };
+  author: string;
   isPublic: boolean;
   downloadCount: number;
   createdAt: string;

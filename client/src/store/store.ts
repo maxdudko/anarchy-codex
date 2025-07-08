@@ -1,7 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './slices/authSlice';
 import userReducer from './slices/userSlice';
-import newsReducer from './slices/newsSlice';
+import articleReducer from './slices/articleSlice';
+import projectReducer from './slices/projectSlice';
 import eventsReducer from './slices/eventsSlice';
 import libraryReducer from './slices/librarySlice';
 import forumReducer from './slices/forumSlice';
@@ -10,7 +11,8 @@ export const store = configureStore({
   reducer: {
     auth: authReducer,
     user: userReducer,
-    news: newsReducer,
+    articles: articleReducer,
+    projects: projectReducer,
     events: eventsReducer,
     library: libraryReducer,
     forum: forumReducer,

@@ -9,7 +9,6 @@ export const fetchEvents = createAsyncThunk(
       page?: number;
       limit?: number;
       publicOnly?: boolean;
-      newsId?: string;
     } = {},
     { rejectWithValue },
   ) => {
@@ -19,7 +18,6 @@ export const fetchEvents = createAsyncThunk(
       if (params.limit) searchParams.append('limit', params.limit.toString());
       if (params.publicOnly !== undefined)
         searchParams.append('publicOnly', params.publicOnly.toString());
-      if (params.newsId) searchParams.append('newsId', params.newsId);
 
       const accessToken = localStorage.getItem('accessToken');
       const headers: Record<string, string> = {
@@ -41,8 +39,15 @@ export const fetchEvents = createAsyncThunk(
       }
 
       const data: PaginatedResponse<Event> = await response.json();
-      return data;
+      return {
+        data,
+        total: data.total,
+        page: data.page,
+        limit: data.limit,
+        totalPages: data.totalPages,
+      };
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -74,6 +79,7 @@ export const fetchEventById = createAsyncThunk(
       const data: Event = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -108,6 +114,7 @@ export const createEvent = createAsyncThunk(
       const data: Event = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -145,6 +152,7 @@ export const updateEvent = createAsyncThunk(
       const data: Event = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -176,6 +184,7 @@ export const deleteEvent = createAsyncThunk(
 
       return id;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -208,6 +217,7 @@ export const joinEvent = createAsyncThunk(
       const data: Event = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -240,6 +250,7 @@ export const leaveEvent = createAsyncThunk(
       const data: Event = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -247,7 +258,7 @@ export const leaveEvent = createAsyncThunk(
 
 // State interface
 interface EventsState {
-  events: Event[];
+  eventsList: Event[];
   currentEvent: Event | null;
   loading: boolean;
   error: string | null;
@@ -260,7 +271,7 @@ interface EventsState {
 }
 
 const initialState: EventsState = {
-  events: [],
+  eventsList: [],
   currentEvent: null,
   loading: false,
   error: null,
@@ -295,7 +306,9 @@ export const eventsSlice = createSlice({
       })
       .addCase(fetchEvents.fulfilled, (state, action) => {
         state.loading = false;
-        state.events = action.payload.data;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        state.eventsList = action.payload.data;
         state.pagination = {
           total: action.payload.total,
           page: action.payload.page,
@@ -331,7 +344,7 @@ export const eventsSlice = createSlice({
       })
       .addCase(createEvent.fulfilled, (state, action) => {
         state.loading = false;
-        state.events.unshift(action.payload);
+        state.eventsList.unshift(action.payload);
       })
       .addCase(createEvent.rejected, (state, action) => {
         state.loading = false;
@@ -346,11 +359,11 @@ export const eventsSlice = createSlice({
       })
       .addCase(updateEvent.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.events.findIndex(
+        const index = state.eventsList.findIndex(
           (event) => event._id === action.payload._id,
         );
         if (index !== -1) {
-          state.events[index] = action.payload;
+          state.eventsList[index] = action.payload;
         }
         if (state.currentEvent?._id === action.payload._id) {
           state.currentEvent = action.payload;
@@ -369,7 +382,7 @@ export const eventsSlice = createSlice({
       })
       .addCase(deleteEvent.fulfilled, (state, action) => {
         state.loading = false;
-        state.events = state.events.filter(
+        state.eventsList = state.eventsList.filter(
           (event) => event._id !== action.payload,
         );
         if (state.currentEvent?._id === action.payload) {
@@ -389,11 +402,11 @@ export const eventsSlice = createSlice({
       })
       .addCase(joinEvent.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.events.findIndex(
+        const index = state.eventsList.findIndex(
           (event) => event._id === action.payload._id,
         );
         if (index !== -1) {
-          state.events[index] = action.payload;
+          state.eventsList[index] = action.payload;
         }
         if (state.currentEvent?._id === action.payload._id) {
           state.currentEvent = action.payload;
@@ -412,11 +425,11 @@ export const eventsSlice = createSlice({
       })
       .addCase(leaveEvent.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.events.findIndex(
+        const index = state.eventsList.findIndex(
           (event) => event._id === action.payload._id,
         );
         if (index !== -1) {
-          state.events[index] = action.payload;
+          state.eventsList[index] = action.payload;
         }
         if (state.currentEvent?._id === action.payload._id) {
           state.currentEvent = action.payload;
@@ -436,7 +449,7 @@ export const { clearError, clearCurrentEvent, setLoading } =
 // Selectors
 export const selectEvents = (state: { events: EventsState }) => state.events;
 export const selectEventsList = (state: { events: EventsState }) =>
-  state.events.events;
+  state.events.eventsList;
 export const selectCurrentEvent = (state: { events: EventsState }) =>
   state.events.currentEvent;
 export const selectEventsLoading = (state: { events: EventsState }) =>
@@ -448,9 +461,11 @@ export const selectEventsPagination = (state: { events: EventsState }) =>
 
 // Helper selectors
 export const selectPublicEvents = (state: { events: EventsState }) =>
-  state.events.events.filter((event) => event.isPublic);
+  state.events.eventsList.filter((event) => event.isPublic);
 
 export const selectUpcomingEvents = (state: { events: EventsState }) =>
-  state.events.events.filter((event) => new Date(event.startDate) > new Date());
+  state.events.eventsList.filter(
+    (event) => new Date(event.startDate) > new Date(),
+  );
 
 export default eventsSlice.reducer;

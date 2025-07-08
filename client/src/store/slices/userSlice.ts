@@ -28,6 +28,7 @@ export const fetchUsers = createAsyncThunk(
       const data: User[] = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -59,6 +60,7 @@ export const fetchUserById = createAsyncThunk(
       const data: User = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -93,6 +95,7 @@ export const updateProfile = createAsyncThunk(
       const data: User = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -130,6 +133,7 @@ export const updateUser = createAsyncThunk(
       const data: User = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -161,6 +165,7 @@ export const deleteUser = createAsyncThunk(
 
       return id;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },

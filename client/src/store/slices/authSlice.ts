@@ -30,6 +30,7 @@ export const loginUser = createAsyncThunk(
 
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -63,6 +64,7 @@ export const registerUser = createAsyncThunk(
 
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -100,6 +102,7 @@ export const refreshToken = createAsyncThunk(
 
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -130,6 +133,7 @@ export const getCurrentUser = createAsyncThunk(
       const data = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -253,7 +257,7 @@ export const authSlice = createSlice({
         state.refreshToken = action.payload.refreshToken;
         state.isAuthenticated = true;
       })
-      .addCase(refreshToken.rejected, (state, action) => {
+      .addCase(refreshToken.rejected, (state) => {
         state.loading = false;
         state.user = null;
         state.accessToken = null;

@@ -36,6 +36,7 @@ export const fetchThreads = createAsyncThunk(
       const data: PaginatedResponse<Thread> = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -67,6 +68,7 @@ export const fetchThreadById = createAsyncThunk(
       const data: Thread = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -101,6 +103,7 @@ export const createThread = createAsyncThunk(
       const data: Thread = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -138,6 +141,7 @@ export const updateThread = createAsyncThunk(
       const data: Thread = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -169,6 +173,7 @@ export const deleteThread = createAsyncThunk(
 
       return id;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -200,6 +205,7 @@ export const fetchMessages = createAsyncThunk(
       const data: Message[] = await response.json();
       return { threadId, messages: data };
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -240,6 +246,7 @@ export const createMessage = createAsyncThunk(
       const data: Message = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -277,6 +284,7 @@ export const updateMessage = createAsyncThunk(
       const data: Message = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -308,6 +316,7 @@ export const deleteMessage = createAsyncThunk(
 
       return id;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -340,6 +349,7 @@ export const likeMessage = createAsyncThunk(
       const data: Message = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },

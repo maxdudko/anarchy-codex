@@ -5,19 +5,18 @@ import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Logo from '../../public/logo.png';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 
 const Navbar: FC = () => {
   const t = useTranslations();
   const params = useParams();
+  const pathname = usePathname();
   const navigation = t.raw('navigation') as Array<{
     name: string;
     path: string;
   }>;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  //  pathname without locale in format: /forum
-  const pathname = window.location.pathname.replace(`/${params.locale}`, '');
-  console.log(pathname, pathname === '/news');
+  pathname.replace(`/${params.locale}`, '');
 
   return (
     <header className="relative flex items-center justify-between border-b border-cyan-500 px-6 py-4">
@@ -28,7 +27,7 @@ const Navbar: FC = () => {
             alt="Anarhy Codex Logo"
             width={40}
             height={40}
-            className="mr-2 inline-block rounded-full"
+            className="mr-4 inline-block rounded-full"
           />
           ANARCHY CODEX
         </Link>

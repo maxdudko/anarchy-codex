@@ -15,7 +15,7 @@ export default function CommunityPage() {
     <main className="min-h-screen bg-gradient-to-br from-black to-gray-900 font-mono text-cyan-300">
       <Navbar />
       <section className="mb-12 border-b border-cyan-500 pb-8 text-center">
-        <h1 className="text-4xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(0,255,255,0.8)] md:text-5xl">
+        <h1 className="px-6 py-16 text-4xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(0,255,255,0.8)] md:text-5xl">
           {t('community.header.title')}
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-pink-400">

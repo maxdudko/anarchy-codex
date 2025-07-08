@@ -14,7 +14,7 @@ function HydrateAuth({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-export function Providers({ children }: { children: ReactNode }) {
+export function StoreProvider({ children }: { children: ReactNode }) {
   return (
     <Provider store={store}>
       <HydrateAuth>{children}</HydrateAuth>

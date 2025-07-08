@@ -47,8 +47,15 @@ export const fetchLibraryFiles = createAsyncThunk(
       }
 
       const data: PaginatedResponse<LibraryFile> = await response.json();
-      return data;
+      return {
+        data,
+        total: data.total,
+        page: data.page,
+        limit: data.limit,
+        totalPages: data.totalPages,
+      };
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -80,6 +87,7 @@ export const fetchLibraryFileById = createAsyncThunk(
       const data: LibraryFile = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -113,6 +121,7 @@ export const uploadFile = createAsyncThunk(
       const data: LibraryFile = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -152,6 +161,7 @@ export const updateLibraryFile = createAsyncThunk(
       const data: LibraryFile = await response.json();
       return data;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -185,6 +195,7 @@ export const deleteLibraryFile = createAsyncThunk(
 
       return id;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -225,6 +236,7 @@ export const downloadFile = createAsyncThunk(
 
       return id;
     } catch (error) {
+      console.log(error);
       return rejectWithValue('Network error');
     }
   },
@@ -232,7 +244,7 @@ export const downloadFile = createAsyncThunk(
 
 // State interface
 interface LibraryState {
-  files: LibraryFile[];
+  filesList: LibraryFile[];
   currentFile: LibraryFile | null;
   loading: boolean;
   error: string | null;
@@ -245,7 +257,7 @@ interface LibraryState {
 }
 
 const initialState: LibraryState = {
-  files: [],
+  filesList: [],
   currentFile: null,
   loading: false,
   error: null,
@@ -280,7 +292,9 @@ export const librarySlice = createSlice({
       })
       .addCase(fetchLibraryFiles.fulfilled, (state, action) => {
         state.loading = false;
-        state.files = action.payload.data;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        state.filesList = action.payload.data;
         state.pagination = {
           total: action.payload.total,
           page: action.payload.page,
@@ -316,7 +330,7 @@ export const librarySlice = createSlice({
       })
       .addCase(uploadFile.fulfilled, (state, action) => {
         state.loading = false;
-        state.files.unshift(action.payload);
+        state.filesList.unshift(action.payload);
       })
       .addCase(uploadFile.rejected, (state, action) => {
         state.loading = false;
@@ -331,11 +345,11 @@ export const librarySlice = createSlice({
       })
       .addCase(updateLibraryFile.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.files.findIndex(
+        const index = state.filesList.findIndex(
           (file) => file._id === action.payload._id,
         );
         if (index !== -1) {
-          state.files[index] = action.payload;
+          state.filesList[index] = action.payload;
         }
         if (state.currentFile?._id === action.payload._id) {
           state.currentFile = action.payload;
@@ -354,7 +368,9 @@ export const librarySlice = createSlice({
       })
       .addCase(deleteLibraryFile.fulfilled, (state, action) => {
         state.loading = false;
-        state.files = state.files.filter((file) => file._id !== action.payload);
+        state.filesList = state.filesList.filter(
+          (file) => file._id !== action.payload,
+        );
         if (state.currentFile?._id === action.payload) {
           state.currentFile = null;
         }
@@ -373,11 +389,11 @@ export const librarySlice = createSlice({
       .addCase(downloadFile.fulfilled, (state, action) => {
         state.loading = false;
         // Update download count in the file list
-        const index = state.files.findIndex(
+        const index = state.filesList.findIndex(
           (file) => file._id === action.payload,
         );
         if (index !== -1) {
-          state.files[index].downloadCount += 1;
+          state.filesList[index].downloadCount += 1;
         }
         if (state.currentFile?._id === action.payload) {
           state.currentFile.downloadCount += 1;
@@ -398,7 +414,7 @@ export const { clearError, clearCurrentFile, setLoading } =
 export const selectLibrary = (state: { library: LibraryState }) =>
   state.library;
 export const selectLibraryFiles = (state: { library: LibraryState }) =>
-  state.library.files;
+  state.library.filesList;
 export const selectCurrentLibraryFile = (state: { library: LibraryState }) =>
   state.library.currentFile;
 export const selectLibraryLoading = (state: { library: LibraryState }) =>
@@ -410,16 +426,16 @@ export const selectLibraryPagination = (state: { library: LibraryState }) =>
 
 // Helper selectors
 export const selectPublicLibraryFiles = (state: { library: LibraryState }) =>
-  state.library.files.filter((file) => file.isPublic);
+  state.library.filesList.filter((file) => file.isPublic);
 
 export const selectLibraryFilesByTag = (
   state: { library: LibraryState },
   tag: string,
-) => state.library.files.filter((file) => file.tags.includes(tag));
+) => state.library.filesList.filter((file) => file.tags.includes(tag));
 
 export const selectLibraryFilesByAuthor = (
   state: { library: LibraryState },
   authorId: string,
-) => state.library.files.filter((file) => file.author._id === authorId);
+) => state.library.filesList.filter((file) => file.author === authorId);
 
 export default librarySlice.reducer;

@@ -1,19 +1,35 @@
 {
   "navigation": [
     {
-      "name": "Новости",
-      "path": "/news"
+      "name": "Home",
+      "path": "/"
     },
     {
-      "name": "Библиотека",
+      "name": "About",
+      "path": "/about"
+    },
+    {
+      "name": "Articles",
+      "path": "/articles"
+    },
+    {
+      "name": "Projects",
+      "path": "/projects"
+    },
+    {
+      "name": "Events",
+      "path": "/events"
+    },
+    {
+      "name": "Library",
       "path": "/library"
     },
     {
-      "name": "Форум",
+      "name": "Forum",
       "path": "/forum"
     },
     {
-      "name": "Сообщество",
+      "name": "Community",
       "path": "/community"
     }
   ],
@@ -21,151 +37,15 @@
     "header": {
       "title": "СВОБОДА НАЧИНАЕТСЯ\nС ПОНИМАНИЯ",
       "description": "Веб-портал, посвящённый продвижению анархо-индивидуализма, анархо-капитализма и либертарианства.",
-      "readMoreBtn": "Читать далее"
+      "readMoreBtn": "Читать далее",
+      "viewAllArticlesBtn": "Просмотреть все статьи",
+      "viewAllProjectsBtn": "Просмотреть все проекты",
+      "viewAllEventsBtn": "Просмотреть все события"
     },
     "sections": {
       "latestArticles": "Последние статьи",
-      "articlesList": [
-        {
-          "title": "The Rise of Anarcho-Individualism",
-          "summary": "July 10, 2025 – Understanding the principles of Anarcho-Individualism.",
-          "link": "/news/the-rise-of-anarcho-individualism"
-        },
-        {
-          "title": "Libertarian Ethics in Modern Society",
-          "summary": "July 08, 2025 – How libertarian ethics apply to today's world.",
-          "link": "/news/libertarian-ethics-in-modern-society"
-        },
-        {
-          "title": "Decentralization and Personal Freedom",
-          "summary": "July 07, 2025 – The impact of decentralization on personal autonomy.",
-          "link": "/news/decentralization-and-personal-freedom"
-        },
-        {
-          "title": "The Individual and the State",
-          "summary": "July 07, 2025 – Exploring autonomy against state power.",
-          "link": "/news/the-individual-and-the-state"
-        },
-        {
-          "title": "Agorism in Practice",
-          "summary": "July 05, 2025 – Counter-economic strategies for a stateless city.",
-          "link": "/news/agorism-in-practice"
-        },
-        {
-          "title": "The Ethics of Voluntaryism",
-          "summary": "July 05, 2025 – A deep dive into voluntary ethics and personal sovereignty.",
-          "link": "/news/the-ethics-of-voluntaryism"
-        },
-        {
-          "title": "Decentralized Technology",
-          "summary": "July 01, 2025 – How blockchain and peer-to-peer networks empower freedom.",
-          "link": "/news/decentralized-technology"
-        },
-        {
-          "title": "Libertarianism and the Environment",
-          "summary": "June 30, 2025 – Environmental stewardship through voluntary action.",
-          "link": "/news/libertarianism-and-the-environment"
-        },
-        {
-          "title": "Anarcho-Capitalism Explained",
-          "summary": "June 28, 2025 – Understanding the principles of Anarcho-Capitalism.",
-          "link": "/news/anarcho-capitalism-explained"
-        },
-        {
-          "title": "The Role of the Individual",
-          "summary": "June 25, 2025 – The importance of individual action in societal change.",
-          "link": "/news/the-role-of-the-individual"
-        }
-      ],
       "projectsTitle": "Проекты",
-      "projectsList": [
-        {
-          "name": "Decentralized Market Platform",
-          "description": "Aiming to create a P2P marketplace.",
-          "link": "/projects/decentralized-market-platform"
-        },
-        {
-          "name": "Anarchist Literature Translation",
-          "description": "Focus on classical anarchist texts.",
-          "link": "/projects/anarchist-literature-translation"
-        },
-        {
-          "name": "Community Education Workshops",
-          "description": "Workshops on Anarcho-Individualism and Libertarianism.",
-          "link": "/projects/community-education-workshops"
-        },
-        {
-          "name": "Open Source Tools for Freedom",
-          "description": "Developing tools to enhance personal freedom.",
-          "link": "/projects/open-source-tools-for-freedom"
-        }
-      ],
       "eventsTitle": "Предстоящие события",
-      "eventsList": [
-        {
-          "name": "Libertarian Meetup",
-          "description": "Connecting liberty advocates in local communities.",
-          "date": "July 25, 2025",
-          "location": "Local Park",
-          "link": "/events/libertarian-meetup"
-        },
-        {
-          "name": "Ethics of Anarchy",
-          "description": "Online discussion on moral principles of anarchism.",
-          "date": "July 25, 2025",
-          "location": "Local Park",
-          "link": "/events/libertarian-meetup"
-        },
-        {
-          "name": "Anarcho-Capitalism Conference",
-          "description": "A conference for discussing Anarcho-Capitalist ideas.",
-          "date": "July 15, 2025",
-          "location": "Virtual Event",
-          "link": "/events/anarcho-capitalism-conference"
-        },
-        {
-          "name": "Libertarian Book Club",
-          "description": "Monthly book discussions on libertarian literature.",
-          "date": "July 20, 2025",
-          "location": "Online",
-          "link": "/events/libertarian-book-club"
-        },
-        {
-          "name": "Decentralization Meetup",
-          "description": "A gathering to discuss decentralization strategies.",
-          "date": "July 1, 2025",
-          "location": "Local Community Center",
-          "link": "/events/decentralization-meetup"
-        },
-        {
-          "name": "Freedom Festival",
-          "description": "Celebrating freedom with talks, workshops, and music.",
-          "date": "July 15, 2025",
-          "location": "City Square",
-          "link": "/events/freedom-festival"
-        },
-        {
-          "name": "Anarchist Art Exhibition",
-          "description": "Showcasing art that promotes anarchist themes.",
-          "date": "July 10, 2025",
-          "location": "Local Gallery",
-          "link": "/events/anarchist-art-exhibition"
-        },
-        {
-          "name": "Agorist Market Day",
-          "description": "A market day for counter-economic activities.",
-          "date": "July 5, 2025",
-          "location": "Community Park",
-          "link": "/events/agorist-market-day"
-        },
-        {
-          "name": "Voluntaryism Workshop",
-          "description": "A workshop on the principles of voluntaryism.",
-          "date": "July 10, 2025",
-          "location": "Online",
-          "link": "/events/voluntaryism-workshop"
-        }
-      ],
       "readMoreBtn": "Read More",
       "knowledgeBase": "База знаний",
       "knowledgeBaseDescription": "Ознакомьтесь с нашей библиотекой литературы, статей и руководств по анархистской и либертарианской мысли.",
@@ -175,65 +55,13 @@
       "joinForumBtn": "Начать"
     }
   },
-  "news": {
+  "articles": {
     "header": {
       "title": "Новости анархо-либертарианцев",
       "description": "Будьте в курсе последних новостей и обновлений по анархо-индивидуализму, анархо-капитализму и либертарианству. Изучите статьи, авторские статьи и анализы, которые бросают вызов статус-кво и способствуют свободе."
     },
     "latestArticles": "Последние статьи",
-    "readMoreBtn": "Читать далее",
-    "articlesList": [
-      {
-        "title": "The Rise of Anarcho-Individualism",
-        "summary": "July 10, 2025 – Understanding the principles of Anarcho-Individualism.",
-        "link": "/news/the-rise-of-anarcho-individualism"
-      },
-      {
-        "title": "Libertarian Ethics in Modern Society",
-        "summary": "July 08, 2025 – How libertarian ethics apply to today's world.",
-        "link": "/news/libertarian-ethics-in-modern-society"
-      },
-      {
-        "title": "Decentralization and Personal Freedom",
-        "summary": "July 07, 2025 – The impact of decentralization on personal autonomy.",
-        "link": "/news/decentralization-and-personal-freedom"
-      },
-      {
-        "title": "The Individual and the State",
-        "summary": "July 07, 2025 – Exploring autonomy against state power.",
-        "link": "/news/the-individual-and-the-state"
-      },
-      {
-        "title": "Agorism in Practice",
-        "summary": "July 05, 2025 – Counter-economic strategies for a stateless city.",
-        "link": "/news/agorism-in-practice"
-      },
-      {
-        "title": "The Ethics of Voluntaryism",
-        "summary": "July 05, 2025 – A deep dive into voluntary ethics and personal sovereignty.",
-        "link": "/news/the-ethics-of-voluntaryism"
-      },
-      {
-        "title": "Decentralized Technology",
-        "summary": "July 01, 2025 – How blockchain and peer-to-peer networks empower freedom.",
-        "link": "/news/decentralized-technology"
-      },
-      {
-        "title": "Libertarianism and the Environment",
-        "summary": "June 30, 2025 – Environmental stewardship through voluntary action.",
-        "link": "/news/libertarianism-and-the-environment"
-      },
-      {
-        "title": "Anarcho-Capitalism Explained",
-        "summary": "June 28, 2025 – Understanding the principles of Anarcho-Capitalism.",
-        "link": "/news/anarcho-capitalism-explained"
-      },
-      {
-        "title": "The Role of the Individual",
-        "summary": "June 25, 2025 – The importance of individual action in societal change.",
-        "link": "/news/the-role-of-the-individual"
-      }
-    ]
+    "readMoreBtn": "Читать далее"
   },
   "library": {
     "header": {
@@ -248,68 +76,7 @@
     },
     "featuredResources": "Featured Resources",
     "searchPlaceholder": "Search the library...",
-    "booksList": [
-      {
-        "title": "The Ego and Its Own",
-        "author": "Max Stirner",
-        "description": "A foundational text of individualist anarchism, exploring the nature of the self and the rejection of all forms of authority.",
-        "link": "/library/books/the-ego-and-its-own"
-      },
-      {
-        "title": "Anarcho-Capitalism: A Primer",
-        "author": "Murray Rothbard",
-        "description": "An introduction to the principles of Anarcho-Capitalism, advocating for a stateless society based on voluntary trade and private property.",
-        "link": "/library/books/anarcho-capitalism-a-primer"
-      },
-      {
-        "title": "The Ethics of Liberty",
-        "author": "Murray Rothbard",
-        "description": "A comprehensive exploration of libertarian ethics, arguing for a society based on natural rights and voluntary cooperation.",
-        "link": "/library/books/the-ethics-of-liberty"
-      },
-      {
-        "title": "For a New Liberty",
-        "author": "Murray Rothbard",
-        "description": "A classic work advocating for a free society based on individual liberty, private property, and voluntary cooperation.",
-        "link": "/library/books/the-ethics-of-liberty"
-      },
-      {
-        "title": "Anarchy, State, and Utopia",
-        "author": "Robert Nozick",
-        "description": "A philosophical exploration of the nature of the state, individual rights, and the concept of a just society.",
-        "link": "/library/books/anarchy-state-and-utopia"
-      },
-      {
-        "title": "For a New Liberty",
-        "author": "Murray Rothbard",
-        "description": "A comprehensive guide to libertarian principles and the case for a free society without government.",
-        "link": "/library/books/for-a-new-liberty"
-      },
-      {
-        "title": "The Market for Liberty",
-        "author": "Murray Rothbard and Karl Hess",
-        "description": "An exploration of how a free market can provide for all societal needs without the interference of the state.",
-        "link": "/library/books/the-market-for-liberty"
-      },
-      {
-        "title": "Anarchism: A Very Short Introduction",
-        "author": "Colin Ward",
-        "description": "A concise overview of anarchist thought, its history, and its relevance in contemporary society.",
-        "link": "/library/books/anarchism-a-very-short-introduction"
-      },
-      {
-        "title": "Libertarianism: A Primer",
-        "author": "David Boaz",
-        "description": "An accessible introduction to libertarian principles, covering topics such as individual rights, free markets, and limited government.",
-        "link": "/library/books/libertarianism-a-primer"
-      },
-      {
-        "title": "The Anarchist Cookbook",
-        "author": "William Powell",
-        "description": "A controversial book that discusses various aspects of anarchism, including tactics and strategies for resisting authority.",
-        "link": "/library/books/the-anarchist-cookbook"
-      }
-    ]
+    "viewDetails": "View"
   },
   "forum": {
     "header": {
