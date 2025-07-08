@@ -1,39 +1,30 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type EventDocument = Event & Document;
+export type ProjectDocument = Project & Document;
 
 @Schema({ timestamps: true })
-export class Event {
+export class Project {
   @Prop({ required: true })
   title: string;
 
   @Prop({ required: true })
   description: string;
 
-  @Prop({ required: true })
-  startDate: Date;
-
-  @Prop()
-  endDate?: Date;
-
-  @Prop()
-  location?: string;
-
-  @Prop()
-  url?: string;
+  @Prop({ type: [String], default: [] })
+  tags: string[];
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  organizer: Types.ObjectId;
+  author: Types.ObjectId;
 
   @Prop({ default: false })
-  isPublic: boolean;
+  isPublished: boolean;
 
   @Prop({ default: 0 })
-  attendeeCount: number;
+  viewCount: number;
 
-  @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
-  attendees: Types.ObjectId[];
+  @Prop({ type: Date })
+  publishedAt?: Date;
 
   @Prop({ type: Date })
   createdAt: Date;
@@ -42,4 +33,4 @@ export class Event {
   updatedAt: Date;
 }
 
-export const EventSchema = SchemaFactory.createForClass(Event);
+export const ProjectSchema = SchemaFactory.createForClass(Project);

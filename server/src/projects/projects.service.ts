@@ -5,15 +5,20 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { News, NewsDocument } from './schemas/news.schema';
-import { CreateNewsDto } from './dto/create-news.dto';
-import { UpdateNewsDto } from './dto/update-news.dto';
+import { Project, ProjectDocument } from './schemas/project.schema';
+import { CreateProjectDto } from './dto/create-project.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
 
 @Injectable()
-export class NewsService {
-  constructor(@InjectModel(News.name) private newsModel: Model<NewsDocument>) {}
+export class ProjectsService {
+  constructor(
+    @InjectModel(Project.name) private newsModel: Model<ProjectDocument>,
+  ) {}
 
-  async create(createNewsDto: CreateNewsDto, authorId: string): Promise<News> {
+  async create(
+    createNewsDto: CreateProjectDto,
+    authorId: string,
+  ): Promise<Project> {
     const news = new this.newsModel({
       ...createNewsDto,
       author: new Types.ObjectId(authorId),
@@ -23,7 +28,7 @@ export class NewsService {
     return news.save();
   }
 
-  async findAll(publishedOnly: boolean = true): Promise<News[]> {
+  async findAll(publishedOnly: boolean = true): Promise<Project[]> {
     const filter = publishedOnly ? { isPublished: true } : {};
     return this.newsModel
       .find(filter)
@@ -32,7 +37,7 @@ export class NewsService {
       .exec();
   }
 
-  async findById(id: string): Promise<News> {
+  async findById(id: string): Promise<Project> {
     const news = await this.newsModel
       .findById(id)
       .populate('author', 'pseudonym avatar')
@@ -45,7 +50,7 @@ export class NewsService {
     return news;
   }
 
-  async findByTag(tag: string): Promise<News[]> {
+  async findByTag(tag: string): Promise<Project[]> {
     return this.newsModel
       .find({ tags: tag, isPublished: true })
       .populate('author', 'pseudonym avatar')
@@ -55,9 +60,9 @@ export class NewsService {
 
   async update(
     id: string,
-    updateNewsDto: UpdateNewsDto,
+    updateNewsDto: UpdateProjectDto,
     userId: string,
-  ): Promise<News> {
+  ): Promise<Project> {
     const news = await this.newsModel.findById(id).exec();
 
     if (!news) {
@@ -66,7 +71,7 @@ export class NewsService {
 
     // Check if user is the author or has moderator/admin role
     if (news.author.toString() !== userId) {
-      throw new ForbiddenException('You can only edit your own news');
+      throw new ForbiddenException('You can only edit your own articles');
     }
 
     const updateData: any = { ...updateNewsDto };
@@ -97,7 +102,7 @@ export class NewsService {
 
     // Check if user is the author or has moderator/admin role
     if (news.author.toString() !== userId) {
-      throw new ForbiddenException('You can only delete your own news');
+      throw new ForbiddenException('You can only delete your own articles');
     }
 
     await this.newsModel.findByIdAndDelete(id).exec();

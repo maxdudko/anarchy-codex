@@ -45,6 +45,24 @@ services:
     profiles:
       - dev
 
+  # Database Seeding Service
+  db-seed:
+    build:
+      context: .
+      dockerfile: Dockerfile.seed
+    container_name: anarchy-codex-db-seed
+    environment:
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/anarchy-codex?authSource=admin
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - anarchy-codex-network
+    profiles:
+      - seed
+      - dev
+    restart: "no"
+
   # Anarchy Codex API
   api:
     build:

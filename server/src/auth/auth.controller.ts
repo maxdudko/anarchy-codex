@@ -5,6 +5,10 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
+interface RequestWithUser extends Request {
+  user: { id: string; email: string; role: string };
+}
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -27,6 +31,6 @@ export class AuthController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   getProfile(@Req() req) {
-    return req.user;
+    return (req as RequestWithUser).user;
   }
 }

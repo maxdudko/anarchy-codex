@@ -25,7 +25,6 @@ export class EventsService {
       endDate: createEventDto.endDate
         ? new Date(createEventDto.endDate)
         : undefined,
-      newsArticle: new Types.ObjectId(createEventDto.newsArticle),
       organizer: new Types.ObjectId(organizerId),
     });
 
@@ -37,7 +36,6 @@ export class EventsService {
     return this.eventModel
       .find(filter)
       .populate('organizer', 'pseudonym avatar')
-      .populate('newsArticle', 'title')
       .sort({ startDate: 1 })
       .exec();
   }
@@ -46,7 +44,6 @@ export class EventsService {
     const event = await this.eventModel
       .findById(id)
       .populate('organizer', 'pseudonym avatar')
-      .populate('newsArticle', 'title content')
       .populate('attendees', 'pseudonym avatar')
       .exec();
 
@@ -55,14 +52,6 @@ export class EventsService {
     }
 
     return event;
-  }
-
-  async findByNewsArticle(newsId: string): Promise<Event[]> {
-    return this.eventModel
-      .find({ newsArticle: new Types.ObjectId(newsId) })
-      .populate('organizer', 'pseudonym avatar')
-      .sort({ startDate: 1 })
-      .exec();
   }
 
   async update(
@@ -91,14 +80,9 @@ export class EventsService {
       updateData.endDate = new Date(updateEventDto.endDate);
     }
 
-    if (updateEventDto.newsArticle) {
-      updateData.newsArticle = new Types.ObjectId(updateEventDto.newsArticle);
-    }
-
     const updatedEvent = await this.eventModel
       .findByIdAndUpdate(id, updateData, { new: true })
       .populate('organizer', 'pseudonym avatar')
-      .populate('newsArticle', 'title')
       .exec();
 
     if (!updatedEvent) {
@@ -150,7 +134,6 @@ export class EventsService {
         { new: true },
       )
       .populate('organizer', 'pseudonym avatar')
-      .populate('newsArticle', 'title')
       .populate('attendees', 'pseudonym avatar')
       .exec();
 
@@ -184,7 +167,6 @@ export class EventsService {
         { new: true },
       )
       .populate('organizer', 'pseudonym avatar')
-      .populate('newsArticle', 'title')
       .populate('attendees', 'pseudonym avatar')
       .exec();
 

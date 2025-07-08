@@ -1,10 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  IsDateString,
-  IsBoolean,
-  IsMongoId,
-} from 'class-validator';
+import { IsString, IsOptional, IsDateString, IsBoolean } from 'class-validator';
 
 export class UpdateEventDto {
   @IsOptional()
@@ -30,10 +24,6 @@ export class UpdateEventDto {
   @IsOptional()
   @IsString()
   url?: string;
-
-  @IsOptional()
-  @IsMongoId()
-  newsArticle?: string;
 
   @IsOptional()
   @IsBoolean()

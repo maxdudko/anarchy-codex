@@ -1,9 +1,13 @@
 import { IsString, IsOptional, IsArray, IsBoolean } from 'class-validator';
 
-export class UpdateNewsDto {
+export class UpdateArticleDto {
   @IsOptional()
   @IsString()
   title?: string;
+
+  @IsOptional()
+  @IsString()
+  summary?: string;
 
   @IsOptional()
   @IsString()

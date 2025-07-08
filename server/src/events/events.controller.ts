@@ -35,11 +35,6 @@ export class EventsController {
     return this.eventsService.findAll(isPublicOnly);
   }
 
-  @Get('news/:newsId')
-  findByNewsArticle(@Param('newsId') newsId: string) {
-    return this.eventsService.findByNewsArticle(newsId);
-  }
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.eventsService.findById(id);

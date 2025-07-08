@@ -6,10 +6,14 @@ import {
   IsBoolean,
 } from 'class-validator';
 
-export class CreateNewsDto {
+export class CreateArticleDto {
   @IsString()
   @IsNotEmpty()
   title: string;
+
+  @IsString()
+  @IsNotEmpty()
+  summary: string;
 
   @IsString()
   @IsNotEmpty()

@@ -12,8 +12,9 @@ import oauthConfig from './config/oauth.config';
 // Feature modules
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { NewsModule } from './news/news.module';
+import { ArticlesModule } from './articles/articles.module';
 import { EventsModule } from './events/events.module';
+import { ProjectsModule } from './projects/projects.module';
 import { LibraryModule } from './library/library.module';
 import { ForumModule } from './forum/forum.module';
 import { HealthModule } from './health/health.module';
@@ -30,7 +31,7 @@ import { HealthModule } from './health/health.module';
     // Database
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('database.uri'),
         useNewUrlParser: configService.get<boolean>('database.useNewUrlParser'),
         useUnifiedTopology: configService.get<boolean>(
@@ -51,8 +52,9 @@ import { HealthModule } from './health/health.module';
     // Feature modules
     AuthModule,
     UsersModule,
-    NewsModule,
+    ArticlesModule,
     EventsModule,
+    ProjectsModule,
     LibraryModule,
     ForumModule,
     HealthModule,

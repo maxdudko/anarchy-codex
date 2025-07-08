@@ -77,7 +77,6 @@ export class LibraryController {
     res.json({
       message: 'Download endpoint - file streaming would be implemented here',
       file: {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         id: file._id,
         title: file.title,
         filename: file.filename,

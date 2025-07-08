@@ -4,7 +4,6 @@ import {
   IsDateString,
   IsOptional,
   IsBoolean,
-  IsMongoId,
 } from 'class-validator';
 
 export class CreateEventDto {
@@ -30,9 +29,6 @@ export class CreateEventDto {
   @IsOptional()
   @IsString()
   url?: string;
-
-  @IsMongoId()
-  newsArticle: string;
 
   @IsOptional()
   @IsBoolean()

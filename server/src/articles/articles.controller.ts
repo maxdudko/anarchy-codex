@@ -10,41 +10,41 @@ import {
   Request,
   Query,
 } from '@nestjs/common';
-import { NewsService } from './news.service';
-import { CreateNewsDto } from './dto/create-news.dto';
-import { UpdateNewsDto } from './dto/update-news.dto';
+import { ArticlesService } from './articles.service';
+import { CreateArticleDto } from './dto/create-article.dto';
+import { UpdateArticleDto } from './dto/update-article.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/user-role.enum';
 
-@Controller('news')
-export class NewsController {
-  constructor(private readonly newsService: NewsService) {}
+@Controller('articles')
+export class ArticlesController {
+  constructor(private readonly articlesService: ArticlesService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.MODERATOR, UserRole.ADMIN)
-  create(@Body() createNewsDto: CreateNewsDto, @Request() req) {
-    return this.newsService.create(createNewsDto, req.user.id);
+  create(@Body() createNewsDto: CreateArticleDto, @Request() req) {
+    return this.articlesService.create(createNewsDto, req.user.id);
   }
 
   @Get()
   findAll(@Query('published') published?: string) {
     const publishedOnly = published !== 'false';
-    return this.newsService.findAll(publishedOnly);
+    return this.articlesService.findAll(publishedOnly);
   }
 
   @Get('tag/:tag')
   findByTag(@Param('tag') tag: string) {
-    return this.newsService.findByTag(tag);
+    return this.articlesService.findByTag(tag);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const news = await this.newsService.findById(id);
-    await this.newsService.incrementViewCount(id);
-    return news;
+    const articles = await this.articlesService.findById(id);
+    await this.articlesService.incrementViewCount(id);
+    return articles;
   }
 
   @Patch(':id')
@@ -52,16 +52,16 @@ export class NewsController {
   @Roles(UserRole.USER, UserRole.MODERATOR, UserRole.ADMIN)
   update(
     @Param('id') id: string,
-    @Body() updateNewsDto: UpdateNewsDto,
+    @Body() updateNewsDto: UpdateArticleDto,
     @Request() req,
   ) {
-    return this.newsService.update(id, updateNewsDto, req.user.id);
+    return this.articlesService.update(id, updateNewsDto, req.user.id);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.MODERATOR, UserRole.ADMIN)
   remove(@Param('id') id: string, @Request() req) {
-    return this.newsService.remove(id, req.user.id);
+    return this.articlesService.remove(id, req.user.id);
   }
 }

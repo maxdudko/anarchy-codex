@@ -23,8 +23,8 @@ export class LibraryFile {
   @Prop({ required: true })
   size: number;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  author: Types.ObjectId;
+  @Prop({ required: true })
+  author: string;
 
   @Prop({ type: [String], default: [] })
   tags: string[];

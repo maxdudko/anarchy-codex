@@ -30,4 +30,6 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`🚀 Anarchy Codex API running on port ${port}`);
 }
-bootstrap();
+bootstrap()
+  .then((r) => console.log(r))
+  .catch((err) => console.log(err));

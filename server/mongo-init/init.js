@@ -6,7 +6,7 @@ db = db.getSiblingDB('anarchy-codex');
 
 // Create collections with proper indexes
 db.createCollection('users');
-db.createCollection('news');
+db.createCollection('articles');
 db.createCollection('events');
 db.createCollection('libraryfiles');
 db.createCollection('threads');
@@ -44,4 +44,4 @@ db.messages.createIndex({ "createdAt": 1 });
 
 print('MongoDB initialization completed successfully!');
 print('Database: anarchy-codex');
-print('Collections created: users, news, events, libraryfiles, threads, messages'); 
+print('Collections created: users, articles, events, libraryfiles, threads, messages');
