@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { LibraryFile } from '../../types';
 import { apiFetch, normalizePaginated, readApiError } from '../../lib/api';
+import { getEntityId } from '../../lib/auth';
 
 // Async thunks
 export const fetchLibraryFiles = createAsyncThunk(
@@ -152,9 +153,16 @@ export const downloadFile = createAsyncThunk(
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download =
-        response.headers.get('content-disposition')?.split('filename=')[1] ||
-        'download';
+      const disposition = response.headers.get('content-disposition') || '';
+      const utfName = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+      const quotedName = disposition.match(/filename="([^"]+)"/i);
+      const plainName = disposition.match(/filename=([^;]+)/i);
+      a.download = decodeURIComponent(
+        utfName?.[1] ||
+          quotedName?.[1] ||
+          plainName?.[1]?.replace(/["']/g, '').trim() ||
+          'download',
+      );
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -360,6 +368,9 @@ export const selectLibraryFilesByTag = (
 export const selectLibraryFilesByAuthor = (
   state: { library: LibraryState },
   authorId: string,
-) => state.library.filesList.filter((file) => file.author === authorId);
+) =>
+  state.library.filesList.filter(
+    (file) => getEntityId(file.author) === authorId,
+  );
 
 export default librarySlice.reducer;

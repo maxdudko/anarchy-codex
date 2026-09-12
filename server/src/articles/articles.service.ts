@@ -30,7 +30,11 @@ export class ArticlesService {
       publishedAt: createArticleDto.isPublished ? new Date() : undefined,
     });
 
-    return articles.save();
+    const saved = await articles.save();
+    return this.articleModel
+      .findById(saved._id)
+      .populate('author', 'pseudonym avatar')
+      .exec() as Promise<Article>;
   }
 
   async findAll(

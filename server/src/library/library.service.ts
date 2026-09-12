@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -26,20 +27,27 @@ export class LibraryService {
 
   async create(
     createLibraryFileDto: CreateLibraryFileDto,
-    fileInfo: any,
+    fileInfo: Express.Multer.File,
     authorId: string,
   ): Promise<LibraryFile> {
+    if (!fileInfo) {
+      throw new BadRequestException('A file is required');
+    }
+
     const libraryFile = new this.libraryFileModel({
       ...createLibraryFileDto,
       filename: fileInfo.filename,
       originalName: fileInfo.originalname,
       mimeType: fileInfo.mimetype,
       size: fileInfo.size,
-      fileId: fileInfo.id,
       author: new Types.ObjectId(authorId),
     });
 
-    return libraryFile.save();
+    const saved = await libraryFile.save();
+    return this.libraryFileModel
+      .findById(saved._id)
+      .populate('author', 'pseudonym avatar')
+      .exec() as Promise<LibraryFile>;
   }
 
   async findAll(
@@ -52,6 +60,7 @@ export class LibraryService {
     const [data, total] = await Promise.all([
       this.libraryFileModel
         .find(filter)
+        .populate('author', 'pseudonym avatar')
         .sort({ createdAt: -1 })
         .skip(pagination.skip)
         .limit(pagination.limit)
@@ -118,19 +127,19 @@ export class LibraryService {
     return updatedLibraryFile;
   }
 
-  async remove(id: string, userId: string): Promise<void> {
+  async remove(id: string, userId: string): Promise<LibraryFile> {
     const libraryFile = await this.libraryFileModel.findById(id).exec();
 
     if (!libraryFile) {
       throw new NotFoundException('Library file not found');
     }
 
-    // Check if user is the author or has moderator/admin role
     if (libraryFile.author.toString() !== userId) {
       throw new ForbiddenException('You can only delete your own files');
     }
 
     await this.libraryFileModel.findByIdAndDelete(id).exec();
+    return libraryFile;
   }
 
   async incrementViewCount(id: string): Promise<void> {

@@ -84,17 +84,14 @@ export interface Event {
   endDate?: string;
   location?: string;
   url?: string;
-  newsArticle: {
-    _id: string;
-    title: string;
-  };
   organizer: {
     _id: string;
     pseudonym: string;
     avatar?: string;
   };
   isPublic: boolean;
-  participants: string[];
+  attendees: Array<string | { _id: string; pseudonym?: string }>;
+  attendeeCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -111,7 +108,8 @@ export interface LibraryFile {
   tags: string[];
   language?: string;
   format?: string;
-  author: string;
+  author: string | { _id: string; pseudonym?: string };
+  sourceAuthor?: string;
   isPublic: boolean;
   downloadCount: number;
   createdAt: string;
@@ -131,7 +129,9 @@ export interface Thread {
   };
   isPinned: boolean;
   isLocked: boolean;
-  messageCount: number;
+  replyCount?: number;
+  messageCount?: number;
+  viewCount?: number;
   lastActivityAt: string;
   createdAt: string;
   updatedAt: string;
@@ -140,14 +140,16 @@ export interface Thread {
 export interface Message {
   _id: string;
   content: string;
-  thread: string;
+  thread: string | { _id: string };
   author: {
     _id: string;
     pseudonym: string;
     avatar?: string;
   };
   parentMessage?: string;
-  likes: string[];
+  likes?: string[];
+  likedBy?: string[];
+  likeCount?: number;
   createdAt: string;
   updatedAt: string;
 }

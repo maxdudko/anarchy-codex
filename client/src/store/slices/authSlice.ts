@@ -133,6 +133,32 @@ export const getCurrentUser = createAsyncThunk(
   },
 );
 
+export const updateCurrentProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (
+    profileData: { pseudonym?: string; bio?: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await apiFetch('/users/profile', {
+        method: 'PATCH',
+        body: JSON.stringify(profileData),
+      });
+
+      if (!response.ok) {
+        return rejectWithValue(
+          await readApiError(response, 'Failed to update profile'),
+        );
+      }
+
+      return normalizeUser(await response.json());
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue('Network error');
+    }
+  },
+);
+
 // Helper functions to safely access localStorage
 const getFromStorage = (key: string): string | null => {
   if (typeof window !== 'undefined') {
@@ -280,6 +306,20 @@ export const authSlice = createSlice({
         state.loading = false;
         state.user = null;
         state.isAuthenticated = false;
+      });
+
+    builder
+      .addCase(updateCurrentProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateCurrentProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+      })
+      .addCase(updateCurrentProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });

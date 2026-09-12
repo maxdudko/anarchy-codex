@@ -33,7 +33,12 @@ export class EventsService {
       organizer: new Types.ObjectId(organizerId),
     });
 
-    return event.save();
+    const saved = await event.save();
+    return this.eventModel
+      .findById(saved._id)
+      .populate('organizer', 'pseudonym avatar')
+      .populate('attendees', 'pseudonym avatar')
+      .exec() as Promise<Event>;
   }
 
   async findAll(
@@ -134,11 +139,15 @@ export class EventsService {
       throw new ForbiddenException('This event is not public');
     }
 
-    const attendeeId = new Types.ObjectId(userId);
+    const alreadyJoined = event.attendees.some(
+      (id) => id.toString() === userId,
+    );
 
-    if (event.attendees.includes(attendeeId)) {
+    if (alreadyJoined) {
       throw new ForbiddenException('You are already registered for this event');
     }
+
+    const attendeeId = new Types.ObjectId(userId);
 
     const updatedEvent = await this.eventModel
       .findByIdAndUpdate(
@@ -168,8 +177,9 @@ export class EventsService {
     }
 
     const attendeeId = new Types.ObjectId(userId);
+    const isJoined = event.attendees.some((id) => id.toString() === userId);
 
-    if (!event.attendees.includes(attendeeId)) {
+    if (!isJoined) {
       throw new ForbiddenException('You are not registered for this event');
     }
 

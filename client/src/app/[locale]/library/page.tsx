@@ -1,78 +1,64 @@
 'use client';
 
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { useTranslations } from 'next-intl';
-import Image from 'next/image';
-import Logo from '@/../public/logo.png';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  fetchLibraryFiles,
-  selectLibraryFiles,
-} from '@/store/slices/librarySlice';
 import { useEffect } from 'react';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
+import PageFrame from '@/components/PageFrame';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchLibraryFiles, selectLibraryFiles } from '@/store/slices/librarySlice';
+import { displayName } from '@/lib/auth';
+import { primaryBtnClass } from '@/lib/styles';
 
 export default function LibraryPage() {
   const t = useTranslations();
-  const dispatch = useDispatch();
-  const files = useSelector(selectLibraryFiles) || [];
+  const dispatch = useAppDispatch();
+  const files = useAppSelector(selectLibraryFiles) || [];
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
     dispatch(fetchLibraryFiles());
-  }, []);
+  }, [dispatch]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-black to-gray-900 font-mono text-cyan-300">
-      <Navbar />
+    <PageFrame>
       <section className="mb-12 border-b border-cyan-500 pb-8 text-center">
-        <h1 className="px-6 py-16 text-4xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(0,255,255,0.8)] md:text-5xl">
+        <h1 className="px-6 py-16 text-4xl font-bold text-cyan-400 md:text-5xl">
           {t('library.header.title')}
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-pink-400">
           {t('library.header.description')}
         </p>
+        {isAuthenticated && (
+          <Link href="/library/upload" className={`${primaryBtnClass} mt-6 inline-block`}>
+            {t('actions.upload')}
+          </Link>
+        )}
       </section>
-
-      <section className="mx-auto max-w-5xl">
-        <h2 className="mb-6 text-2xl font-semibold text-cyan-300 drop-shadow-[0_0_4px_rgba(0,255,255,0.5)]">
-          {t('library.featuredResources')}
-        </h2>
-
-        <div className="grid gap-6 md:grid-cols-3">
-          {files.map((book, index) => (
-            <div
-              key={index}
-              className="flex flex-col justify-between rounded-xl border border-cyan-600 bg-gray-900 p-4 drop-shadow-md transition hover:shadow-cyan-700/40"
-            >
-              <div>
-                <Image
-                  src={Logo}
-                  alt={book.title}
-                  className="mb-4 h-48 w-full rounded border border-cyan-800 object-cover"
-                />
-                <h3 className="mb-1 text-lg font-bold text-cyan-300">
-                  {book.title}
-                </h3>
-                <p className="mb-2 text-sm text-pink-500">{book.author}</p>
-                <p className="text-sm text-cyan-200">{book.description}</p>
-              </div>
-              <div>
+      <section className="mx-auto max-w-5xl px-4">
+        {files.length === 0 ? (
+          <p className="text-pink-400">{t('actions.empty')}</p>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-3">
+            {files.map((book) => (
+              <div key={book._id} className="flex flex-col justify-between rounded-xl border border-cyan-600 bg-gray-900 p-4">
+                <div>
+                  <h3 className="mb-1 text-lg font-bold text-cyan-300">{book.title}</h3>
+                  <p className="mb-2 text-sm text-pink-500">
+                    {book.sourceAuthor || displayName(book.author)}
+                  </p>
+                  <p className="text-sm text-cyan-200">{book.description}</p>
+                </div>
                 <Link
                   href={`/library/${book._id}`}
-                  className="mt-4 inline-block rounded border border-cyan-400 px-4 py-2 text-sm text-cyan-400 transition hover:bg-cyan-800 hover:text-white"
+                  className="mt-4 inline-block text-sm text-cyan-400 hover:underline"
                 >
                   {t('library.viewDetails')}
                 </Link>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
-
-      <Footer />
-    </main>
+    </PageFrame>
   );
 }

@@ -4,6 +4,8 @@ import { ArticleSchema } from '../src/articles/schemas/article.schema';
 import { ProjectSchema } from '../src/projects/schemas/project.schema';
 import { EventSchema } from '../src/events/schemas/event.schema';
 import { LibraryFileSchema } from '../src/library/schemas/library-file.schema';
+import { ThreadSchema } from '../src/forum/schemas/thread.schema';
+import { MessageSchema } from '../src/forum/schemas/message.schema';
 import { config } from 'dotenv';
 import * as bcrypt from 'bcryptjs';
 
@@ -493,6 +495,8 @@ async function seed() {
     const Project = mongoose.model('Project', ProjectSchema);
     const Event = mongoose.model('Event', EventSchema);
     const Book = mongoose.model('LibraryFile', LibraryFileSchema);
+    const Thread = mongoose.model('Thread', ThreadSchema);
+    const ForumMessage = mongoose.model('Message', MessageSchema);
 
     console.log('Clearing existing data...');
     await User.deleteMany({});
@@ -500,6 +504,8 @@ async function seed() {
     await Project.deleteMany({});
     await Event.deleteMany({});
     await Book.deleteMany({});
+    await Thread.deleteMany({});
+    await ForumMessage.deleteMany({});
 
     console.log('Creating admin user...');
     const hashedPassword = await bcrypt.hash('password123', 10);
@@ -539,8 +545,30 @@ async function seed() {
     await Event.insertMany(updatedEventsList);
     console.log(`Seeded ${updatedEventsList.length} events`);
 
-    await Book.insertMany(booksList);
+    await Book.insertMany(
+      booksList.map((book) => ({
+        ...book,
+        sourceAuthor: book.author,
+        author: AUTHOR_ID,
+      })),
+    );
     console.log(`Seeded ${booksList.length} books`);
+
+    const thread = await Thread.create({
+      title: 'Welcome to the Codex forum',
+      content:
+        'Use this space to debate ideas, share resources, and organize projects. Keep it civil and pseudonymous.',
+      author: AUTHOR_ID,
+      tags: ['general'],
+      lastActivityAt: new Date(),
+      replyCount: 1,
+    });
+    await ForumMessage.create({
+      content: 'First.',
+      thread: thread._id,
+      author: AUTHOR_ID,
+    });
+    console.log('Seeded forum welcome thread');
 
     console.log('Database seeding complete!');
     await mongoose.disconnect();

@@ -10,6 +10,10 @@ export class UpdateLibraryFileDto {
   description?: string;
 
   @IsOptional()
+  @IsString()
+  sourceAuthor?: string;
+
+  @IsOptional()
   @IsArray()
   tags?: string[];
 

@@ -1,44 +1,77 @@
 'use client';
 
-import Navbar from '@/components/Navbar';
-import { usePathname } from 'next/navigation';
-import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
-import Footer from '@/components/Footer';
+import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { Link, useRouter } from '@/i18n/navigation';
+import PageFrame from '@/components/PageFrame';
+import ContentBody from '@/components/ContentBody';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
+  deleteProject,
   fetchProjectById,
   selectCurrentProject,
 } from '@/store/slices/projectSlice';
+import { displayName, isOwner } from '@/lib/auth';
+import { dangerBtnClass, secondaryBtnClass } from '@/lib/styles';
 
 export default function ProjectPage() {
-  const pathname = usePathname();
-  const dispatch = useDispatch();
-  const id = pathname.split('/').pop() || '';
-  const project = useSelector(selectCurrentProject);
+  const params = useParams<{ project: string }>();
+  const id = params.project;
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const t = useTranslations();
+  const project = useAppSelector(selectCurrentProject);
+  const { user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    dispatch(fetchProjectById(id));
-  }, []);
+    if (id) {
+      dispatch(fetchProjectById(id));
+    }
+  }, [dispatch, id]);
+
+  const owner = isOwner(user, project?.author);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-black to-gray-900 font-mono text-cyan-300">
-      <Navbar />
-      <section className="px-4">
-        <h1>
-          {project?.title} |{' '}
-          {new Date(project?.createdAt || '').toLocaleString()}
-        </h1>
-        <p>{project?.description}</p>
-        <button
-          onClick={() => window.history.back()}
-          className="mt-10 cursor-pointer rounded border border-cyan-400 px-4 py-2 text-cyan-300 transition hover:bg-cyan-800"
-        >
-          Back to Projects
-        </button>
+    <PageFrame>
+      <section className="mx-auto max-w-3xl px-4 py-10">
+        {!project ? (
+          <p>{t('auth.loading')}</p>
+        ) : (
+          <>
+            <h1 className="text-3xl font-bold text-cyan-400">{project.title}</h1>
+            <p className="mt-2 text-sm text-gray-400">
+              {displayName(project.author)} · {new Date(project.createdAt).toLocaleString()}
+            </p>
+            <div className="mt-6">
+              <ContentBody content={project.description} />
+            </div>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Link href="/projects" className={secondaryBtnClass}>
+                {t('actions.back')}
+              </Link>
+              {owner && (
+                <>
+                  <Link href={`/projects/${project._id}/edit`} className={secondaryBtnClass}>
+                    {t('actions.edit')}
+                  </Link>
+                  <button
+                    type="button"
+                    className={dangerBtnClass}
+                    onClick={async () => {
+                      if (!window.confirm(t('actions.confirmDelete'))) return;
+                      await dispatch(deleteProject(project._id));
+                      router.push('/projects');
+                    }}
+                  >
+                    {t('actions.delete')}
+                  </button>
+                </>
+              )}
+            </div>
+          </>
+        )}
       </section>
-      <Footer />
-    </main>
+    </PageFrame>
   );
 }

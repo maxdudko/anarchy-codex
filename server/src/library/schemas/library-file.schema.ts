@@ -23,8 +23,11 @@ export class LibraryFile {
   @Prop({ required: true })
   size: number;
 
-  @Prop({ required: true })
-  author: string;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  author: Types.ObjectId;
+
+  @Prop()
+  sourceAuthor?: string;
 
   @Prop({ type: [String], default: [] })
   tags: string[];
@@ -35,7 +38,7 @@ export class LibraryFile {
   @Prop()
   format?: string;
 
-  @Prop({ default: false })
+  @Prop({ default: true })
   isPublic: boolean;
 
   @Prop({ default: 0 })
@@ -45,7 +48,7 @@ export class LibraryFile {
   viewCount: number;
 
   @Prop()
-  fileId?: string; // GridFS file ID
+  fileId?: string;
 
   @Prop({ type: Date })
   createdAt: Date;

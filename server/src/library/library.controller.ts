@@ -12,9 +12,12 @@ import {
   UseInterceptors,
   UploadedFile,
   Res,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
+import { existsSync, createReadStream, unlink } from 'fs';
+import { join, basename } from 'path';
 import { LibraryService } from './library.service';
 import { CreateLibraryFileDto } from './dto/create-library-file.dto';
 import { UpdateLibraryFileDto } from './dto/update-library-file.dto';
@@ -36,6 +39,9 @@ export class LibraryController {
     @UploadedFile() file: Express.Multer.File,
     @Request() req,
   ) {
+    if (!file) {
+      throw new BadRequestException('A file is required');
+    }
     return this.libraryService.create(createLibraryFileDto, file, req.user.id);
   }
 
@@ -74,21 +80,22 @@ export class LibraryController {
   @Get(':id/download')
   async download(@Param('id') id: string, @Res() res: Response) {
     const file = await this.libraryService.findById(id);
-    await this.libraryService.incrementDownloadCount(id);
+    const dest = process.env.UPLOAD_DEST || './uploads';
+    const filePath = join(dest, basename(file.filename));
 
-    // In a real implementation, you would stream the file from GridFS or S3
-    // For now, we'll just return the file metadata
-    res.json({
-      message: 'Download endpoint - file streaming would be implemented here',
-      file: {
-        id: file._id,
-        title: file.title,
-        filename: file.filename,
-        originalName: file.originalName,
-        mimeType: file.mimeType,
-        size: file.size,
-      },
-    });
+    if (!existsSync(filePath)) {
+      return res
+        .status(404)
+        .json({ message: 'File is not available for download' });
+    }
+
+    await this.libraryService.incrementDownloadCount(id);
+    res.setHeader('Content-Type', file.mimeType || 'application/octet-stream');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${encodeURIComponent(file.originalName)}"`,
+    );
+    return createReadStream(filePath).pipe(res);
   }
 
   @Patch(':id')
@@ -105,7 +112,13 @@ export class LibraryController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.MODERATOR, UserRole.ADMIN)
-  remove(@Param('id') id: string, @Request() req) {
-    return this.libraryService.remove(id, req.user.id);
+  async remove(@Param('id') id: string, @Request() req) {
+    const file = await this.libraryService.remove(id, req.user.id);
+    const dest = process.env.UPLOAD_DEST || './uploads';
+    const filePath = join(dest, basename(file.filename));
+    if (existsSync(filePath)) {
+      unlink(filePath, () => undefined);
+    }
+    return { deleted: true };
   }
 }

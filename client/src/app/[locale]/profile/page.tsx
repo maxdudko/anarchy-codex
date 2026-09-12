@@ -1,24 +1,29 @@
 "use client";
-import { useEffect } from "react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import PageFrame from "@/components/PageFrame";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { logout, getCurrentUser } from "@/store/slices/authSlice";
+import {
+  logout,
+  getCurrentUser,
+  updateCurrentProfile,
+} from "@/store/slices/authSlice";
+import { inputClass, dangerBtnClass, primaryBtnClass } from "@/lib/styles";
 
 export default function ProfilePage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const t = useTranslations("auth");
-  const { user, isAuthenticated, loading, accessToken, hydrated } = useAppSelector(
-    (state) => state.auth
-  );
+  const ta = useTranslations("actions");
+  const { user, isAuthenticated, loading, accessToken, hydrated, error } =
+    useAppSelector((state) => state.auth);
+  const [pseudonym, setPseudonym] = useState("");
+  const [bio, setBio] = useState("");
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    if (!hydrated) {
-      return;
-    }
+    if (!hydrated) return;
     if (!isAuthenticated && !accessToken) {
       router.push("/login");
     } else if (!user && accessToken) {
@@ -26,47 +31,74 @@ export default function ProfilePage() {
     }
   }, [hydrated, isAuthenticated, user, accessToken, dispatch, router]);
 
+  useEffect(() => {
+    if (!user) return;
+    setPseudonym(user.pseudonym || "");
+    setBio(user.bio || "");
+  }, [user]);
+
+  const handleSave = async (event: FormEvent) => {
+    event.preventDefault();
+    setSaved(false);
+    const result = await dispatch(
+      updateCurrentProfile({ pseudonym: pseudonym.trim(), bio }),
+    );
+    if (updateCurrentProfile.fulfilled.match(result)) {
+      setSaved(true);
+    }
+  };
+
   if (!hydrated || (loading && !user)) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-black to-gray-900 font-mono text-cyan-300">
-        <Navbar />
+      <PageFrame>
         <p className="mt-16 text-center">{t("loading")}</p>
-        <Footer />
-      </main>
+      </PageFrame>
     );
   }
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-black to-gray-900 font-mono text-cyan-300">
-        <Navbar />
+      <PageFrame>
         <p className="mt-16 text-center">{t("notLoggedIn")}</p>
-        <Footer />
-      </main>
+      </PageFrame>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-black to-gray-900 font-mono text-cyan-300">
-      <Navbar />
-      <section className="mx-auto mt-16 max-w-md rounded-xl border border-cyan-500 bg-gray-900 p-6 drop-shadow-[0_0_10px_rgba(0,255,255,0.2)]">
+    <PageFrame>
+      <form
+        className="mx-auto mt-16 max-w-md rounded-xl border border-cyan-500 bg-gray-900 p-6"
+        onSubmit={handleSave}
+      >
         <h2 className="mb-4 text-2xl font-bold text-cyan-400">{t("profile")}</h2>
-        <p className="mb-2 text-pink-400">
+        <p className="mb-3 text-pink-400">
           {t("email")}: <span className="text-cyan-200">{user.email}</span>
         </p>
-        <p className="mb-2 text-pink-400">
-          {t("pseudonym")}:{" "}
-          <span className="text-cyan-200">{user.pseudonym}</span>
+        <p className="mb-3 text-pink-400">
+          {t("roles")}: <span className="text-cyan-200">{user.roles?.join(", ")}</span>
         </p>
-        <p className="mb-2 text-pink-400">
-          {t("roles")}:{" "}
-          <span className="text-cyan-200">{user.roles?.join(", ")}</span>
-        </p>
-        <p className="mb-4 text-pink-400">
-          {t("bio")}: <span className="text-cyan-200">{user.bio || "—"}</span>
-        </p>
+        <label className="text-sm text-pink-400">{t("pseudonym")}</label>
+        <input
+          className={inputClass}
+          value={pseudonym}
+          onChange={(e) => setPseudonym(e.target.value)}
+          minLength={3}
+          required
+        />
+        <label className="text-sm text-pink-400">{t("bio")}</label>
+        <textarea
+          className={inputClass}
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+        />
+        {error && <p className="mb-3 text-red-400">{error}</p>}
+        {saved && <p className="mb-3 text-cyan-300">{t("saved")}</p>}
+        <button className={`${primaryBtnClass} w-full`} type="submit" disabled={loading}>
+          {ta("save")}
+        </button>
         <button
-          className="w-full rounded border border-pink-400 bg-pink-900 p-2 text-white transition hover:bg-pink-800"
+          type="button"
+          className={`${dangerBtnClass} mt-3 w-full`}
           onClick={() => {
             dispatch(logout());
             router.push("/login");
@@ -74,8 +106,7 @@ export default function ProfilePage() {
         >
           {t("logout")}
         </button>
-      </section>
-      <Footer />
-    </main>
+      </form>
+    </PageFrame>
   );
 }

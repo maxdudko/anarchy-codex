@@ -35,7 +35,11 @@ export class ForumService {
       lastActivityAt: new Date(),
     });
 
-    return thread.save();
+    const saved = await thread.save();
+    return this.threadModel
+      .findById(saved._id)
+      .populate('author', 'pseudonym avatar')
+      .exec() as Promise<Thread>;
   }
 
   async findAllThreads(
@@ -163,7 +167,10 @@ export class ForumService {
       })
       .exec();
 
-    return savedMessage;
+    return this.messageModel
+      .findById(savedMessage._id)
+      .populate('author', 'pseudonym avatar')
+      .exec() as Promise<Message>;
   }
 
   async findMessagesByThread(threadId: string): Promise<Message[]> {
@@ -254,9 +261,12 @@ export class ForumService {
       throw new NotFoundException('Message not found');
     }
 
+    const alreadyLiked = message.likedBy.some(
+      (id) => id.toString() === userId,
+    );
     const userIdObj = new Types.ObjectId(userId);
 
-    if (message.likedBy.includes(userIdObj)) {
+    if (alreadyLiked) {
       // Unlike
       const updatedMessage = await this.messageModel
         .findByIdAndUpdate(

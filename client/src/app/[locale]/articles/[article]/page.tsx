@@ -1,47 +1,81 @@
 'use client';
 
-import Navbar from '@/components/Navbar';
-import { usePathname } from 'next/navigation';
-import { useDispatch, useSelector } from 'react-redux';
+import { useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { Link, useRouter } from '@/i18n/navigation';
+import PageFrame from '@/components/PageFrame';
+import ContentBody from '@/components/ContentBody';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
+  deleteArticle,
   fetchArticleById,
   selectCurrentArticle,
 } from '@/store/slices/articleSlice';
-import { useEffect } from 'react';
-import Footer from '@/components/Footer';
+import { displayName, isOwner } from '@/lib/auth';
+import { dangerBtnClass, secondaryBtnClass } from '@/lib/styles';
 
 export default function ArticlePage() {
-  const pathname = usePathname();
-  const dispatch = useDispatch();
-  const id = pathname.split('/').pop() || '';
-  const article = useSelector(selectCurrentArticle);
+  const params = useParams<{ article: string }>();
+  const id = params.article;
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const t = useTranslations();
+  const article = useAppSelector(selectCurrentArticle);
+  const { user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    dispatch(fetchArticleById(id));
-  }, []);
+    if (id) {
+      dispatch(fetchArticleById(id));
+    }
+  }, [dispatch, id]);
+
+  const owner = isOwner(user, article?.author);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-black to-gray-900 font-mono text-cyan-300">
-      <Navbar />
-      <section>
-        <h1>
-          {article?.title} |{' '}
-          {new Date(article?.createdAt || '').toLocaleString()}
-        </h1>
-        <p>{article?.summary}</p>
-        {Array.from({ length: 10 }).map((_, i) => (
-          <p key={i}>{article?.content}</p>
-        ))}
-        <button
-          onClick={() => window.history.back()}
-          className="mt-10 cursor-pointer rounded border border-cyan-400 px-4 py-2 text-cyan-300 transition hover:bg-cyan-800"
-        >
-          Back to Articles
-        </button>
+    <PageFrame>
+      <section className="mx-auto max-w-3xl px-4 py-10">
+        {!article ? (
+          <p>{t('auth.loading')}</p>
+        ) : (
+          <>
+            <h1 className="text-3xl font-bold text-cyan-400">{article.title}</h1>
+            <p className="mt-2 text-sm text-gray-400">
+              {displayName(article.author)} ·{' '}
+              {new Date(article.createdAt).toLocaleString()}
+            </p>
+            <p className="mt-4 text-pink-400">{article.summary}</p>
+            <div className="mt-6">
+              <ContentBody content={article.content} />
+            </div>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Link href="/articles" className={secondaryBtnClass}>
+                {t('actions.back')}
+              </Link>
+              {owner && (
+                <>
+                  <Link href={`/articles/${article._id}/edit`} className={secondaryBtnClass}>
+                    {t('actions.edit')}
+                  </Link>
+                  <button
+                    type="button"
+                    className={dangerBtnClass}
+                    onClick={async () => {
+                      if (!window.confirm(t('actions.confirmDelete'))) {
+                        return;
+                      }
+                      await dispatch(deleteArticle(article._id));
+                      router.push('/articles');
+                    }}
+                  >
+                    {t('actions.delete')}
+                  </button>
+                </>
+              )}
+            </div>
+          </>
+        )}
       </section>
-      <Footer />
-    </main>
+    </PageFrame>
   );
 }

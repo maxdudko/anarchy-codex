@@ -30,7 +30,11 @@ export class ProjectsService {
       publishedAt: createNewsDto.isPublished ? new Date() : undefined,
     });
 
-    return news.save();
+    const saved = await news.save();
+    return this.newsModel
+      .findById(saved._id)
+      .populate('author', 'pseudonym avatar')
+      .exec() as Promise<Project>;
   }
 
   async findAll(

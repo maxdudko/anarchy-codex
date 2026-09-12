@@ -35,23 +35,12 @@ export const fetchThreadById = createAsyncThunk(
   'forum/fetchThreadById',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/forum/threads/${id}`,
-        { headers },
-      );
+      const response = await apiFetch(`/forum/threads/${id}`);
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to fetch thread');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to fetch thread'),
+        );
       }
 
       const data: Thread = await response.json();
@@ -67,26 +56,15 @@ export const createThread = createAsyncThunk(
   'forum/createThread',
   async (threadData: Partial<Thread>, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/forum/threads`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify(threadData),
-        },
-      );
+      const response = await apiFetch('/forum/threads', {
+        method: 'POST',
+        body: JSON.stringify(threadData),
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to create thread');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to create thread'),
+        );
       }
 
       const data: Thread = await response.json();
@@ -140,24 +118,14 @@ export const deleteThread = createAsyncThunk(
   'forum/deleteThread',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/forum/threads/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
+      const response = await apiFetch(`/forum/threads/${id}`, {
+        method: 'DELETE',
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to delete thread');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to delete thread'),
+        );
       }
 
       return id;
@@ -172,23 +140,14 @@ export const fetchMessages = createAsyncThunk(
   'forum/fetchMessages',
   async (threadId: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/forum/threads/${threadId}/messages`,
-        { headers },
+      const response = await apiFetch(
+        `/forum/threads/${threadId}/messages`,
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to fetch messages');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to fetch messages'),
+        );
       }
 
       const data: Message[] = await response.json();
@@ -210,26 +169,18 @@ export const createMessage = createAsyncThunk(
     { rejectWithValue },
   ) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/forum/threads/${threadId}/messages`,
+      const response = await apiFetch(
+        `/forum/threads/${threadId}/messages`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
           body: JSON.stringify(messageData),
         },
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to create message');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to create message'),
+        );
       }
 
       const data: Message = await response.json();
@@ -315,24 +266,14 @@ export const likeMessage = createAsyncThunk(
   'forum/likeMessage',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/forum/messages/${id}/like`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
+      const response = await apiFetch(`/forum/messages/${id}/like`, {
+        method: 'POST',
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to like message');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to like message'),
+        );
       }
 
       const data: Message = await response.json();
@@ -502,14 +443,18 @@ export const forumSlice = createSlice({
     // Create message
     builder
       .addCase(createMessage.pending, (state) => {
-        state.loading = true;
         state.error = null;
       })
       .addCase(createMessage.fulfilled, (state, action) => {
         state.loading = false;
         state.messages.push(action.payload);
         if (state.currentThread) {
-          state.currentThread.messageCount += 1;
+          const nextCount =
+            (state.currentThread.replyCount ??
+              state.currentThread.messageCount ??
+              0) + 1;
+          state.currentThread.replyCount = nextCount;
+          state.currentThread.messageCount = nextCount;
           state.currentThread.lastActivityAt = action.payload.createdAt;
         }
       })
@@ -550,10 +495,14 @@ export const forumSlice = createSlice({
           (message) => message._id !== action.payload,
         );
         if (state.currentThread) {
-          state.currentThread.messageCount = Math.max(
+          const nextCount = Math.max(
             0,
-            state.currentThread.messageCount - 1,
+            (state.currentThread.replyCount ??
+              state.currentThread.messageCount ??
+              0) - 1,
           );
+          state.currentThread.replyCount = nextCount;
+          state.currentThread.messageCount = nextCount;
         }
       })
       .addCase(deleteMessage.rejected, (state, action) => {
@@ -564,7 +513,6 @@ export const forumSlice = createSlice({
     // Like message
     builder
       .addCase(likeMessage.pending, (state) => {
-        state.loading = true;
         state.error = null;
       })
       .addCase(likeMessage.fulfilled, (state, action) => {
