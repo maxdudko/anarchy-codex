@@ -23,6 +23,8 @@ export class AuthController {
     return this.authService.register(createUserDto);
   }
 
+  // validate the a
+
   @Post('refresh')
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
     return this.authService.refreshToken(refreshTokenDto.refreshToken);
@@ -31,6 +33,7 @@ export class AuthController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   getProfile(@Req() req) {
+    console.log(req.user);
     return (req as RequestWithUser).user;
   }
 }

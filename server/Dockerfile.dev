@@ -12,11 +12,17 @@ COPY package*.json ./
 # Install all dependencies (including dev dependencies)
 RUN npm install
 
+# Install NestJS CLI globally
+RUN npm install -g @nestjs/cli
+
 # Copy source code
 COPY . .
 
 # Create uploads directory
 RUN mkdir -p uploads
+
+# Declare volume
+VOLUME ["/app/uploads"]
 
 # Expose ports
 EXPOSE 3001 9229
