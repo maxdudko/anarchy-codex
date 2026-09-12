@@ -12,7 +12,7 @@ const Navbar: FC = () => {
   const t = useTranslations();
   const params = useParams();
   const pathname = usePathname();
-  const { user, isAuthenticated, loading } = useAppSelector((state) => state.auth);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
   const navigation = t.raw('navigation') as Array<{
     name: string;
     path: string;

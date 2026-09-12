@@ -1,0 +1,97 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: anarchy-codex-mongodb-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password123}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-anarchy-codex}
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongodb_data_dev:/data/db
+      - ./server/mongo-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - anarchy-codex-dev
+
+  mongo-express:
+    image: mongo-express:1.0.0
+    container_name: anarchy-codex-mongo-express-dev
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USER:-admin}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD:-password123}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASSWORD:-password123}@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USER:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:-password123}
+    ports:
+      - "${MONGO_EXPRESS_PORT:-8081}:8081"
+    depends_on:
+      - mongodb
+    networks:
+      - anarchy-codex-dev
+
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    container_name: anarchy-codex-api-dev
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASSWORD:-password123}@mongodb:27017/${MONGO_DB:-anarchy-codex}?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-key}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-15m}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-7d}
+      PORT: 3001
+      NODE_ENV: development
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      UPLOAD_DEST: ./uploads
+      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-10485760}
+    ports:
+      - "${API_PORT:-3001}:3001"
+      - "9229:9229"
+    volumes:
+      - ./server:/app
+      - api_node_modules:/app/node_modules
+      - uploads_data_dev:/app/uploads
+    depends_on:
+      - mongodb
+    networks:
+      - anarchy-codex-dev
+    command: npm run start:dev
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    container_name: anarchy-codex-client-dev
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
+      NEXT_TELEMETRY_DISABLED: 1
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "${CLIENT_PORT:-3000}:3000"
+    volumes:
+      - ./client:/app
+      - client_node_modules:/app/node_modules
+      - client_next:/app/.next
+    depends_on:
+      - api
+    networks:
+      - anarchy-codex-dev
+    command: npm run dev -- --hostname 0.0.0.0 --port 3000
+
+volumes:
+  mongodb_data_dev:
+  uploads_data_dev:
+  api_node_modules:
+  client_node_modules:
+  client_next:
+
+networks:
+  anarchy-codex-dev:
+    driver: bridge
