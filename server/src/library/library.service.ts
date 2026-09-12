@@ -11,6 +11,11 @@ import {
 } from './schemas/library-file.schema';
 import { CreateLibraryFileDto } from './dto/create-library-file.dto';
 import { UpdateLibraryFileDto } from './dto/update-library-file.dto';
+import {
+  PaginatedResult,
+  parsePagination,
+  toPaginated,
+} from '../common/utils/pagination';
 
 @Injectable()
 export class LibraryService {
@@ -37,13 +42,23 @@ export class LibraryService {
     return libraryFile.save();
   }
 
-  async findAll(publicOnly: boolean = true): Promise<LibraryFile[]> {
+  async findAll(
+    publicOnly: boolean = true,
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResult<LibraryFile>> {
+    const pagination = parsePagination(page, limit);
     const filter = publicOnly ? { isPublic: true } : {};
-    return this.libraryFileModel
-      .find(filter)
-      .populate('author', 'pseudonym avatar')
-      .sort({ createdAt: -1 })
-      .exec();
+    const [data, total] = await Promise.all([
+      this.libraryFileModel
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(pagination.skip)
+        .limit(pagination.limit)
+        .exec(),
+      this.libraryFileModel.countDocuments(filter).exec(),
+    ]);
+    return toPaginated(data, total, pagination.page, pagination.limit);
   }
 
   async findById(id: string): Promise<LibraryFile> {

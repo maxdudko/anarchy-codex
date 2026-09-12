@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { ForumService } from './forum.service';
 import { CreateThreadDto } from './dto/create-thread.dto';
@@ -32,8 +33,11 @@ export class ForumController {
   }
 
   @Get('threads')
-  findAllThreads() {
-    return this.forumService.findAllThreads();
+  findAllThreads(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.forumService.findAllThreads(page, limit);
   }
 
   @Get('threads/:id')

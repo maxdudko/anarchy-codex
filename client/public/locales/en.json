@@ -239,5 +239,24 @@
   "footer": {
     "copyright": "© 2025 ANARCHY CODEX. Powered by freedom and code.",
     "description": "Designed for decentralization and autonomy."
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "profile": "Profile",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "pseudonym": "Pseudonym",
+    "bio": "Bio",
+    "roles": "Roles",
+    "loggingIn": "Logging in...",
+    "registering": "Registering...",
+    "noAccount": "No account?",
+    "haveAccount": "Already have an account?",
+    "passwordsMismatch": "Passwords don't match",
+    "notLoggedIn": "Not logged in",
+    "loading": "Loading..."
   }
 }

@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Event, PaginatedResponse } from '../../types';
+import { Event } from '../../types';
+import { apiFetch, normalizePaginated, readApiError } from '../../lib/api';
 
 // Async thunks
 export const fetchEvents = createAsyncThunk(
@@ -9,43 +10,25 @@ export const fetchEvents = createAsyncThunk(
       page?: number;
       limit?: number;
       publicOnly?: boolean;
-    } = {},
+    } | void,
     { rejectWithValue },
   ) => {
     try {
       const searchParams = new URLSearchParams();
-      if (params.page) searchParams.append('page', params.page.toString());
-      if (params.limit) searchParams.append('limit', params.limit.toString());
-      if (params.publicOnly !== undefined)
+      if (params?.page) searchParams.append('page', params.page.toString());
+      if (params?.limit) searchParams.append('limit', params.limit.toString());
+      if (params?.publicOnly !== undefined)
         searchParams.append('publicOnly', params.publicOnly.toString());
 
-      const accessToken = localStorage.getItem('accessToken');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/events?${searchParams}`,
-        { headers },
-      );
+      const response = await apiFetch(`/events?${searchParams}`);
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to fetch events');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to fetch events'),
+        );
       }
 
-      const data: PaginatedResponse<Event> = await response.json();
-      return {
-        data,
-        total: data.total,
-        page: data.page,
-        limit: data.limit,
-        totalPages: data.totalPages,
-      };
+      return normalizePaginated<Event>(await response.json());
     } catch (error) {
       console.log(error);
       return rejectWithValue('Network error');
@@ -57,23 +40,12 @@ export const fetchEventById = createAsyncThunk(
   'events/fetchEventById',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/events/${id}`,
-        { headers },
-      );
+      const response = await apiFetch(`/events/${id}`);
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to fetch event');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to fetch event'),
+        );
       }
 
       const data: Event = await response.json();
@@ -89,26 +61,15 @@ export const createEvent = createAsyncThunk(
   'events/createEvent',
   async (eventData: Partial<Event>, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/events`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify(eventData),
-        },
-      );
+      const response = await apiFetch('/events', {
+        method: 'POST',
+        body: JSON.stringify(eventData),
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to create event');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to create event'),
+        );
       }
 
       const data: Event = await response.json();
@@ -127,26 +88,15 @@ export const updateEvent = createAsyncThunk(
     { rejectWithValue },
   ) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/events/${id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify(eventData),
-        },
-      );
+      const response = await apiFetch(`/events/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(eventData),
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to update event');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to update event'),
+        );
       }
 
       const data: Event = await response.json();
@@ -162,24 +112,14 @@ export const deleteEvent = createAsyncThunk(
   'events/deleteEvent',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/events/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
+      const response = await apiFetch(`/events/${id}`, {
+        method: 'DELETE',
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to delete event');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to delete event'),
+        );
       }
 
       return id;
@@ -194,24 +134,14 @@ export const joinEvent = createAsyncThunk(
   'events/joinEvent',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/events/${id}/join`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
+      const response = await apiFetch(`/events/${id}/join`, {
+        method: 'POST',
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to join event');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to join event'),
+        );
       }
 
       const data: Event = await response.json();
@@ -227,24 +157,14 @@ export const leaveEvent = createAsyncThunk(
   'events/leaveEvent',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/events/${id}/leave`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
+      const response = await apiFetch(`/events/${id}/leave`, {
+        method: 'POST',
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to leave event');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to leave event'),
+        );
       }
 
       const data: Event = await response.json();
@@ -306,8 +226,6 @@ export const eventsSlice = createSlice({
       })
       .addCase(fetchEvents.fulfilled, (state, action) => {
         state.loading = false;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         state.eventsList = action.payload.data;
         state.pagination = {
           total: action.payload.total,

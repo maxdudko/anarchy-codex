@@ -8,6 +8,11 @@ import { Model, Types } from 'mongoose';
 import { Article, ArticleDocument } from './schemas/article.schema';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
+import {
+  PaginatedResult,
+  parsePagination,
+  toPaginated,
+} from '../common/utils/pagination';
 
 @Injectable()
 export class ArticlesService {
@@ -28,13 +33,24 @@ export class ArticlesService {
     return articles.save();
   }
 
-  async findAll(publishedOnly: boolean = true): Promise<Article[]> {
+  async findAll(
+    publishedOnly: boolean = true,
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResult<Article>> {
+    const pagination = parsePagination(page, limit);
     const filter = publishedOnly ? { isPublished: true } : {};
-    return this.articleModel
-      .find(filter)
-      .populate('author', 'pseudonym avatar')
-      .sort({ createdAt: -1 })
-      .exec();
+    const [data, total] = await Promise.all([
+      this.articleModel
+        .find(filter)
+        .populate('author', 'pseudonym avatar')
+        .sort({ createdAt: -1 })
+        .skip(pagination.skip)
+        .limit(pagination.limit)
+        .exec(),
+      this.articleModel.countDocuments(filter).exec(),
+    ]);
+    return toPaginated(data, total, pagination.page, pagination.limit);
   }
 
   async findById(id: string): Promise<Article> {

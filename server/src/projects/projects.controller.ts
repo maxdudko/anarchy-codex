@@ -30,9 +30,13 @@ export class ProjectsController {
   }
 
   @Get()
-  findAll(@Query('published') published?: string) {
+  findAll(
+    @Query('published') published?: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
     const publishedOnly = published !== 'false';
-    return this.projectsService.findAll(publishedOnly);
+    return this.projectsService.findAll(publishedOnly, page, limit);
   }
 
   @Get('tag/:tag')

@@ -5,10 +5,6 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
-interface RequestWithUser extends Request {
-  user: { id: string; email: string; role: string };
-}
-
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -23,8 +19,6 @@ export class AuthController {
     return this.authService.register(createUserDto);
   }
 
-  // validate the a
-
   @Post('refresh')
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
     return this.authService.refreshToken(refreshTokenDto.refreshToken);
@@ -32,8 +26,7 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  getProfile(@Req() req) {
-    console.log(req.user);
-    return (req as RequestWithUser).user;
+  getProfile(@Req() req: { user: { id: string } }) {
+    return this.authService.getProfile(req.user.id);
   }
 }

@@ -1,40 +1,29 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Thread, Message, PaginatedResponse } from '../../types';
+import { Thread, Message } from '../../types';
+import { apiFetch, normalizePaginated, readApiError } from '../../lib/api';
 
 // Async thunks
 export const fetchThreads = createAsyncThunk(
   'forum/fetchThreads',
   async (
-    params: { page?: number; limit?: number; sort?: string } = {},
+    params: { page?: number; limit?: number; sort?: string } | void,
     { rejectWithValue },
   ) => {
     try {
       const searchParams = new URLSearchParams();
-      if (params.page) searchParams.append('page', params.page.toString());
-      if (params.limit) searchParams.append('limit', params.limit.toString());
-      if (params.sort) searchParams.append('sort', params.sort);
+      if (params?.page) searchParams.append('page', params.page.toString());
+      if (params?.limit) searchParams.append('limit', params.limit.toString());
+      if (params?.sort) searchParams.append('sort', params.sort);
 
-      const accessToken = localStorage.getItem('accessToken');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/forum/threads?${searchParams}`,
-        { headers },
-      );
+      const response = await apiFetch(`/forum/threads?${searchParams}`);
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to fetch threads');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to fetch threads'),
+        );
       }
 
-      const data: PaginatedResponse<Thread> = await response.json();
-      return data;
+      return normalizePaginated<Thread>(await response.json());
     } catch (error) {
       console.log(error);
       return rejectWithValue('Network error');

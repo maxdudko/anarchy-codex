@@ -1,27 +1,32 @@
-import mongoose, { Document, Types } from 'mongoose';
+import 'reflect-metadata';
+import mongoose from 'mongoose';
 import { ArticleSchema } from '../src/articles/schemas/article.schema';
 import { ProjectSchema } from '../src/projects/schemas/project.schema';
 import { EventSchema } from '../src/events/schemas/event.schema';
 import { LibraryFileSchema } from '../src/library/schemas/library-file.schema';
 import { config } from 'dotenv';
 import * as bcrypt from 'bcryptjs';
-import { Prop, Schema } from '@nestjs/mongoose';
 
 config(); // Loads .env if present
 
 const MONGODB_URI =
   process.env.MONGODB_URI || 'mongodb://localhost:27017/anarchy-codex';
 
-// User schema for seeding
-const UserSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  name: { type: String, required: true },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
-  isActive: { type: Boolean, default: true },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-});
+const UserSchema = new mongoose.Schema(
+  {
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    pseudonym: { type: String, required: true, unique: true },
+    roles: { type: [String], default: ['user'] },
+    avatar: String,
+    isEmailVerified: { type: Boolean, default: false },
+    googleId: String,
+    lastLoginAt: Date,
+    isActive: { type: Boolean, default: true },
+    bio: String,
+  },
+  { timestamps: true },
+);
 
 const articlesList = [
   {
@@ -492,14 +497,20 @@ async function seed() {
     console.log('Clearing existing data...');
     await User.deleteMany({});
     await Article.deleteMany({});
+    await Project.deleteMany({});
+    await Event.deleteMany({});
+    await Book.deleteMany({});
 
     console.log('Creating admin user...');
     const hashedPassword = await bcrypt.hash('password123', 10);
     const user = await User.create({
       email: 'admin@anarchy-codex.com',
       password: hashedPassword,
-      name: 'Admin User',
-      role: 'admin',
+      pseudonym: 'Admin',
+      roles: ['admin'],
+      isActive: true,
+      isEmailVerified: true,
+      bio: 'Portal administrator',
     });
 
     const AUTHOR_ID = user._id.toString();

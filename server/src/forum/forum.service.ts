@@ -11,6 +11,11 @@ import { CreateThreadDto } from './dto/create-thread.dto';
 import { UpdateThreadDto } from './dto/update-thread.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
+import {
+  PaginatedResult,
+  parsePagination,
+  toPaginated,
+} from '../common/utils/pagination';
 
 @Injectable()
 export class ForumService {
@@ -33,13 +38,23 @@ export class ForumService {
     return thread.save();
   }
 
-  async findAllThreads(): Promise<Thread[]> {
-    return this.threadModel
-      .find()
-      .populate('author', 'pseudonym avatar')
-      .populate('lastMessage')
-      .sort({ isPinned: -1, lastActivityAt: -1 })
-      .exec();
+  async findAllThreads(
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResult<Thread>> {
+    const pagination = parsePagination(page, limit);
+    const [data, total] = await Promise.all([
+      this.threadModel
+        .find()
+        .populate('author', 'pseudonym avatar')
+        .populate('lastMessage')
+        .sort({ isPinned: -1, lastActivityAt: -1 })
+        .skip(pagination.skip)
+        .limit(pagination.limit)
+        .exec(),
+      this.threadModel.countDocuments().exec(),
+    ]);
+    return toPaginated(data, total, pagination.page, pagination.limit);
   }
 
   async findThreadById(id: string): Promise<Thread> {

@@ -1,24 +1,35 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Logo from '../../public/logo.png';
-import Link from 'next/link';
-import { useParams, usePathname } from 'next/navigation';
-import { useAppSelector } from '@/store/hooks';
+import { Link, usePathname, useRouter } from '@/i18n/navigation';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { logout } from '@/store/slices/authSlice';
 
 const Navbar: FC = () => {
   const t = useTranslations();
-  const params = useParams();
+  const locale = useLocale();
   const pathname = usePathname();
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const navigation = t.raw('navigation') as Array<{
     name: string;
     path: string;
   }>;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  pathname.replace(`/${params.locale}`, '');
+
+  const changeLocale = (nextLocale: string) => {
+    router.replace(pathname, { locale: nextLocale });
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    setMobileMenuOpen(false);
+    router.push('/');
+  };
 
   return (
     <header className="relative flex items-center justify-between border-b border-cyan-500 px-6 py-4">
@@ -26,7 +37,7 @@ const Navbar: FC = () => {
         <Link href="/">
           <Image
             src={Logo}
-            alt="Anarhy Codex Logo"
+            alt="Anarchy Codex Logo"
             width={40}
             height={40}
             className="mr-4 inline-block rounded-full"
@@ -37,38 +48,49 @@ const Navbar: FC = () => {
       <div className="flex items-center gap-4">
         <nav className="hidden space-x-6 text-pink-400 md:flex">
           {navigation.map((item, index) => (
-            <a
+            <Link
               key={index}
               href={item.path}
               className={`hover:text-cyan-300 ${pathname === item.path ? 'font-semibold text-red-50' : ''}`}
             >
               {item.name}
-            </a>
+            </Link>
           ))}
         </nav>
         <div>
           <select
             className="cursor-pointer rounded border border-cyan-500 bg-gray-800 px-2 py-1 text-pink-400 hover:bg-gray-700 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
-            onChange={(e) => {
-              const locale = e.target.value;
-              if (locale) {
-                window.location.href = `/${locale}`;
-              }
-            }}
-            defaultValue={params.locale}
+            onChange={(e) => changeLocale(e.target.value)}
+            value={locale}
           >
             <option value="en">English</option>
             <option value="ru">Russian</option>
             <option value="ua">Ukrainian</option>
           </select>
         </div>
-        {!isAuthenticated && (
-          <div>
+        {isAuthenticated ? (
+          <div className="hidden items-center gap-3 md:flex">
+            <Link
+              href="/profile"
+              className="rounded border border-cyan-400 px-4 py-2 text-sm text-cyan-300 transition hover:bg-cyan-800 hover:text-white"
+            >
+              {user?.pseudonym || t('auth.profile')}
+            </Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="rounded border border-pink-400 px-4 py-2 text-sm text-pink-300 transition hover:bg-pink-900 hover:text-white"
+            >
+              {t('auth.logout')}
+            </button>
+          </div>
+        ) : (
+          <div className="hidden md:block">
             <Link
               href="/login"
               className="rounded border border-cyan-400 px-4 py-2 text-sm text-cyan-300 transition hover:bg-cyan-800 hover:text-white"
             >
-              Login
+              {t('auth.login')}
             </Link>
           </div>
         )}
@@ -87,31 +109,32 @@ const Navbar: FC = () => {
               {item.name}
             </Link>
           ))}
-          <div className="relative">
-            <select
-              className="rounded border border-cyan-500 bg-gray-800 px-2 py-1 text-pink-400 hover:bg-gray-700 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
-              onChange={(e) => {
-                const locale = e.target.value;
-                if (locale) {
-                  window.location.href = `/${locale}`;
-                }
-              }}
-              defaultValue={params.locale}
-            >
-              <option value="en">English</option>
-              <option value="ru">Russian</option>
-              <option value="ua">Ukrainian</option>
-            </select>
-          </div>
-          {!isAuthenticated && (
-            <div>
-              <Link
-                href="/login"
-                className="rounded border border-cyan-400 px-4 py-2 text-sm text-cyan-300 transition hover:bg-cyan-800 hover:text-white"
-              >
-                Login
+          <select
+            className="rounded border border-cyan-500 bg-gray-800 px-2 py-1 text-pink-400 hover:bg-gray-700 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+            onChange={(e) => changeLocale(e.target.value)}
+            value={locale}
+          >
+            <option value="en">English</option>
+            <option value="ru">Russian</option>
+            <option value="ua">Ukrainian</option>
+          </select>
+          {isAuthenticated ? (
+            <>
+              <Link href="/profile" className="hover:text-cyan-300">
+                {user?.pseudonym || t('auth.profile')}
               </Link>
-            </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="text-left hover:text-cyan-300"
+              >
+                {t('auth.logout')}
+              </button>
+            </>
+          ) : (
+            <Link href="/login" className="hover:text-cyan-300">
+              {t('auth.login')}
+            </Link>
           )}
         </div>
       )}

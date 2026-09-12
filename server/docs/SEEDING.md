@@ -39,13 +39,12 @@ npm run seed
 ### Admin User
 - **Email**: admin@anarchy-codex.com
 - **Password**: password123
-- **Role**: admin
-- **Name**: Admin User
+- **Roles**: admin
+- **Pseudonym**: Admin
 
-### News Articles
-- 10 sample news articles
-- All articles are published and ready to view
-- Proper author relationships with the admin user
+### Content
+- Sample articles, projects, events, and library files
+- Articles and projects are published and attributed to the admin user
 
 ## Database Access
 

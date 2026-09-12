@@ -8,6 +8,11 @@ import { Model, Types } from 'mongoose';
 import { Project, ProjectDocument } from './schemas/project.schema';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import {
+  PaginatedResult,
+  parsePagination,
+  toPaginated,
+} from '../common/utils/pagination';
 
 @Injectable()
 export class ProjectsService {
@@ -28,13 +33,24 @@ export class ProjectsService {
     return news.save();
   }
 
-  async findAll(publishedOnly: boolean = true): Promise<Project[]> {
+  async findAll(
+    publishedOnly: boolean = true,
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResult<Project>> {
+    const pagination = parsePagination(page, limit);
     const filter = publishedOnly ? { isPublished: true } : {};
-    return this.newsModel
-      .find(filter)
-      .populate('author', 'pseudonym avatar')
-      .sort({ createdAt: -1 })
-      .exec();
+    const [data, total] = await Promise.all([
+      this.newsModel
+        .find(filter)
+        .populate('author', 'pseudonym avatar')
+        .sort({ createdAt: -1 })
+        .skip(pagination.skip)
+        .limit(pagination.limit)
+        .exec(),
+      this.newsModel.countDocuments(filter).exec(),
+    ]);
+    return toPaginated(data, total, pagination.page, pagination.limit);
   }
 
   async findById(id: string): Promise<Project> {

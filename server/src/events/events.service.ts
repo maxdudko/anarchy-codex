@@ -8,6 +8,11 @@ import { Model, Types } from 'mongoose';
 import { Event, EventDocument } from './schemas/event.schema';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import {
+  PaginatedResult,
+  parsePagination,
+  toPaginated,
+} from '../common/utils/pagination';
 
 @Injectable()
 export class EventsService {
@@ -31,13 +36,24 @@ export class EventsService {
     return event.save();
   }
 
-  async findAll(publicOnly: boolean = true): Promise<Event[]> {
+  async findAll(
+    publicOnly: boolean = true,
+    page?: number,
+    limit?: number,
+  ): Promise<PaginatedResult<Event>> {
+    const pagination = parsePagination(page, limit);
     const filter = publicOnly ? { isPublic: true } : {};
-    return this.eventModel
-      .find(filter)
-      .populate('organizer', 'pseudonym avatar')
-      .sort({ startDate: 1 })
-      .exec();
+    const [data, total] = await Promise.all([
+      this.eventModel
+        .find(filter)
+        .populate('organizer', 'pseudonym avatar')
+        .sort({ startDate: 1 })
+        .skip(pagination.skip)
+        .limit(pagination.limit)
+        .exec(),
+      this.eventModel.countDocuments(filter).exec(),
+    ]);
+    return toPaginated(data, total, pagination.page, pagination.limit);
   }
 
   async findById(id: string): Promise<Event> {

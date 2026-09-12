@@ -3,13 +3,18 @@
 import { ReactNode, useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { store } from './store';
-import { hydrate } from './slices/authSlice';
+import { useAppDispatch } from './hooks';
+import { getCurrentUser, hydrate } from './slices/authSlice';
 
-function HydrateAuth({ children }: { children: ReactNode }) {
+function AuthSession({ children }: { children: ReactNode }) {
+  const dispatch = useAppDispatch();
+
   useEffect(() => {
-    // Hydrate auth state from localStorage on client mount
-    store.dispatch(hydrate());
-  }, []);
+    dispatch(hydrate());
+    if (typeof window !== 'undefined' && localStorage.getItem('accessToken')) {
+      dispatch(getCurrentUser());
+    }
+  }, [dispatch]);
 
   return <>{children}</>;
 }
@@ -17,7 +22,7 @@ function HydrateAuth({ children }: { children: ReactNode }) {
 export function StoreProvider({ children }: { children: ReactNode }) {
   return (
     <Provider store={store}>
-      <HydrateAuth>{children}</HydrateAuth>
+      <AuthSession>{children}</AuthSession>
     </Provider>
   );
 }

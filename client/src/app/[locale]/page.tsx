@@ -1,33 +1,27 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { useDispatch, useSelector } from 'react-redux';
+import { Link } from '@/i18n/navigation';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchArticles, selectArticleList } from '@/store/slices/articleSlice';
-import { useEffect } from 'react';
 import { fetchProjects, selectProjectList } from '@/store/slices/projectSlice';
 import { fetchEvents, selectEventsList } from '@/store/slices/eventsSlice';
-import Link from 'next/link';
 
 export default function HomePage() {
   const t = useTranslations();
-  const dispatch = useDispatch();
-  const articles = useSelector(selectArticleList) || [];
-  const projects = useSelector(selectProjectList) || [];
-  const events = useSelector(selectEventsList) || [];
+  const dispatch = useAppDispatch();
+  const articles = useAppSelector(selectArticleList) || [];
+  const projects = useAppSelector(selectProjectList) || [];
+  const events = useAppSelector(selectEventsList) || [];
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
     dispatch(fetchArticles());
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
     dispatch(fetchProjects());
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
     dispatch(fetchEvents());
-  }, []);
+  }, [dispatch]);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-black to-gray-900 font-mono text-cyan-300">
@@ -59,12 +53,12 @@ export default function HomePage() {
                 <br />
                 {new Date(article.createdAt).toLocaleString()} -{' '}
                 {article.summary}
-                <a
-                  href={`/news/${article._id}`}
+                <Link
+                  href={`/articles/${article._id}`}
                   className="ml-2 text-cyan-400 hover:underline"
                 >
                   {t('home.sections.readMoreBtn')}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -85,12 +79,12 @@ export default function HomePage() {
                 <strong className="text-cyan-300">{project.title}</strong>
                 <br />
                 {project.description}
-                <a
+                <Link
                   href={`/projects/${project._id}`}
                   className="ml-2 text-cyan-400 hover:underline"
                 >
                   {t('home.sections.readMoreBtn')}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -103,7 +97,7 @@ export default function HomePage() {
 
         <div>
           <h3 className="mb-2 text-lg font-semibold text-cyan-300 drop-shadow-[0_0_4px_rgba(0,255,255,0.5)]">
-            Upcoming Events
+            {t('home.sections.eventsTitle')}
           </h3>
           <ul className="mb-4 space-y-2 text-pink-400">
             {events.map((event, index) => (
@@ -115,12 +109,12 @@ export default function HomePage() {
                   Date: {new Date(event.createdAt).toLocaleString()} | Location:{' '}
                   {event.location}
                 </span>
-                <a
+                <Link
                   href={`/events/${event._id}`}
                   className="ml-2 text-cyan-400 hover:underline"
                 >
                   {t('home.sections.readMoreBtn')}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

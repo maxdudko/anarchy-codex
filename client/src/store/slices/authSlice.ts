@@ -1,31 +1,34 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { User, AuthResponse, LoginRequest, RegisterRequest } from '../../types';
+import { API_URL, apiFetch, readApiError } from '../../lib/api';
+
+function normalizeUser(user: User & { id?: string }): User {
+  return {
+    ...user,
+    _id: user._id || user.id || '',
+  };
+}
 
 // Async thunks
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials: LoginRequest, { rejectWithValue }) => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/auth/login`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(credentials),
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(credentials),
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Login failed');
+        return rejectWithValue(await readApiError(response, 'Login failed'));
       }
 
       const data: AuthResponse = await response.json();
+      data.user = normalizeUser(data.user);
 
-      // Store tokens in localStorage
-      console.log(1111111111, {data})
       setToStorage('accessToken', data.access_token);
       setToStorage('refreshToken', data.refresh_token);
 
@@ -41,25 +44,23 @@ export const registerUser = createAsyncThunk(
   'auth/register',
   async (userData: RegisterRequest, { rejectWithValue }) => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/auth/register`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(userData),
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(userData),
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Registration failed');
+        return rejectWithValue(
+          await readApiError(response, 'Registration failed'),
+        );
       }
 
       const data: AuthResponse = await response.json();
+      data.user = normalizeUser(data.user);
 
-      // Store tokens in localStorage
       setToStorage('accessToken', data.access_token);
       setToStorage('refreshToken', data.refresh_token);
 
@@ -80,24 +81,23 @@ export const refreshToken = createAsyncThunk(
         return rejectWithValue('No refresh token');
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/auth/refresh`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ refreshToken }),
+      const response = await fetch(`${API_URL}/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({ refreshToken }),
+      });
 
       if (!response.ok) {
         return rejectWithValue('Token refresh failed');
       }
 
       const data: AuthResponse = await response.json();
+      if (data.user) {
+        data.user = normalizeUser(data.user);
+      }
 
-      // Update tokens in localStorage
       setToStorage('accessToken', data.access_token);
       setToStorage('refreshToken', data.refresh_token);
 
@@ -118,21 +118,13 @@ export const getCurrentUser = createAsyncThunk(
         return rejectWithValue('No access token');
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/auth/me`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
-      console.log({response})
+      const response = await apiFetch('/auth/me');
 
       if (!response.ok) {
         return rejectWithValue('Failed to get user');
       }
 
-      const data = await response.json();
+      const data = normalizeUser(await response.json());
       return data;
     } catch (error) {
       console.log(error);
@@ -169,6 +161,7 @@ interface AuthState {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
+  hydrated: boolean;
 }
 
 const initialState: AuthState = {
@@ -178,6 +171,7 @@ const initialState: AuthState = {
   isAuthenticated: false,
   loading: false,
   error: null,
+  hydrated: false,
 };
 
 export const authSlice = createSlice({
@@ -185,7 +179,6 @@ export const authSlice = createSlice({
   initialState,
   reducers: {
     hydrate: (state) => {
-      // Load tokens from localStorage when the app starts on the client
       const accessToken = getFromStorage('accessToken');
       const refreshToken = getFromStorage('refreshToken');
 
@@ -194,6 +187,7 @@ export const authSlice = createSlice({
         state.refreshToken = refreshToken;
         state.isAuthenticated = true;
       }
+      state.hydrated = true;
     },
     logout: (state) => {
       state.user = null;
@@ -258,6 +252,9 @@ export const authSlice = createSlice({
         state.accessToken = action.payload.access_token;
         state.refreshToken = action.payload.refresh_token;
         state.isAuthenticated = true;
+        if (action.payload.user) {
+          state.user = action.payload.user;
+        }
       })
       .addCase(refreshToken.rejected, (state) => {
         state.loading = false;

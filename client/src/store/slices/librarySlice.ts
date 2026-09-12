@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { LibraryFile, PaginatedResponse } from '../../types';
+import { LibraryFile } from '../../types';
+import { apiFetch, normalizePaginated, readApiError } from '../../lib/api';
 
 // Async thunks
 export const fetchLibraryFiles = createAsyncThunk(
@@ -12,48 +13,28 @@ export const fetchLibraryFiles = createAsyncThunk(
       tag?: string;
       authorId?: string;
       search?: string;
-    } = {},
+    } | void,
     { rejectWithValue },
   ) => {
     try {
       const searchParams = new URLSearchParams();
-      if (params.page) searchParams.append('page', params.page.toString());
-      if (params.limit) searchParams.append('limit', params.limit.toString());
-      if (params.publicOnly !== undefined)
+      if (params?.page) searchParams.append('page', params.page.toString());
+      if (params?.limit) searchParams.append('limit', params.limit.toString());
+      if (params?.publicOnly !== undefined)
         searchParams.append('publicOnly', params.publicOnly.toString());
-      if (params.tag) searchParams.append('tag', params.tag);
-      if (params.authorId) searchParams.append('authorId', params.authorId);
-      if (params.search) searchParams.append('search', params.search);
+      if (params?.tag) searchParams.append('tag', params.tag);
+      if (params?.authorId) searchParams.append('authorId', params.authorId);
+      if (params?.search) searchParams.append('search', params.search);
 
-      const accessToken = localStorage.getItem('accessToken');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/library?${searchParams}`,
-        { headers },
-      );
+      const response = await apiFetch(`/library?${searchParams}`);
 
       if (!response.ok) {
-        const error = await response.json();
         return rejectWithValue(
-          error.message || 'Failed to fetch library files',
+          await readApiError(response, 'Failed to fetch library files'),
         );
       }
 
-      const data: PaginatedResponse<LibraryFile> = await response.json();
-      return {
-        data,
-        total: data.total,
-        page: data.page,
-        limit: data.limit,
-        totalPages: data.totalPages,
-      };
+      return normalizePaginated<LibraryFile>(await response.json());
     } catch (error) {
       console.log(error);
       return rejectWithValue('Network error');
@@ -65,23 +46,12 @@ export const fetchLibraryFileById = createAsyncThunk(
   'library/fetchLibraryFileById',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/library/${id}`,
-        { headers },
-      );
+      const response = await apiFetch(`/library/${id}`);
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to fetch library file');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to fetch library file'),
+        );
       }
 
       const data: LibraryFile = await response.json();
@@ -97,25 +67,15 @@ export const uploadFile = createAsyncThunk(
   'library/uploadFile',
   async (fileData: FormData, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/library`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: fileData,
-        },
-      );
+      const response = await apiFetch('/library', {
+        method: 'POST',
+        body: fileData,
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to upload file');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to upload file'),
+        );
       }
 
       const data: LibraryFile = await response.json();
@@ -134,27 +94,14 @@ export const updateLibraryFile = createAsyncThunk(
     { rejectWithValue },
   ) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/library/${id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify(fileData),
-        },
-      );
+      const response = await apiFetch(`/library/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(fileData),
+      });
 
       if (!response.ok) {
-        const error = await response.json();
         return rejectWithValue(
-          error.message || 'Failed to update library file',
+          await readApiError(response, 'Failed to update library file'),
         );
       }
 
@@ -171,25 +118,13 @@ export const deleteLibraryFile = createAsyncThunk(
   'library/deleteLibraryFile',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/library/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
+      const response = await apiFetch(`/library/${id}`, {
+        method: 'DELETE',
+      });
 
       if (!response.ok) {
-        const error = await response.json();
         return rejectWithValue(
-          error.message || 'Failed to delete library file',
+          await readApiError(response, 'Failed to delete library file'),
         );
       }
 
@@ -205,21 +140,12 @@ export const downloadFile = createAsyncThunk(
   'library/downloadFile',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const headers: Record<string, string> = {};
-
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/library/${id}/download`,
-        { headers },
-      );
+      const response = await apiFetch(`/library/${id}/download`);
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to download file');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to download file'),
+        );
       }
 
       const blob = await response.blob();
@@ -292,8 +218,6 @@ export const librarySlice = createSlice({
       })
       .addCase(fetchLibraryFiles.fulfilled, (state, action) => {
         state.loading = false;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         state.filesList = action.payload.data;
         state.pagination = {
           total: action.payload.total,

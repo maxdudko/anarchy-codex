@@ -30,9 +30,13 @@ export class EventsController {
   }
 
   @Get()
-  findAll(@Query('publicOnly') publicOnly?: string) {
+  findAll(
+    @Query('publicOnly') publicOnly?: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
     const isPublicOnly = publicOnly !== 'false';
-    return this.eventsService.findAll(isPublicOnly);
+    return this.eventsService.findAll(isPublicOnly, page, limit);
   }
 
   @Get(':id')

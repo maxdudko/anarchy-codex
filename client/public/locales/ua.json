@@ -221,5 +221,24 @@
   "footer": {
     "copyright": "© 2025 ANARCHY CODEX. Powered by freedom and code.",
     "description": "Designed for decentralization and autonomy."
+  },
+  "auth": {
+    "login": "Вхід",
+    "logout": "Вихід",
+    "register": "Реєстрація",
+    "profile": "Профіль",
+    "email": "Email",
+    "password": "Пароль",
+    "confirmPassword": "Підтвердіть пароль",
+    "pseudonym": "Псевдонім",
+    "bio": "Біографія",
+    "roles": "Ролі",
+    "loggingIn": "Вхід...",
+    "registering": "Реєстрація...",
+    "noAccount": "Немає облікового запису?",
+    "haveAccount": "Вже є обліковий запис?",
+    "passwordsMismatch": "Паролі не збігаються",
+    "notLoggedIn": "Ви не увійшли",
+    "loading": "Завантаження..."
   }
 }

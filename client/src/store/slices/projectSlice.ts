@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Project, PaginatedResponse } from '../../types';
+import { Project } from '../../types';
+import { apiFetch, normalizePaginated, readApiError } from '../../lib/api';
 
 // Async thunks
 export const fetchProjects = createAsyncThunk(
@@ -10,44 +11,26 @@ export const fetchProjects = createAsyncThunk(
       limit?: number;
       published?: boolean;
       tag?: string;
-    } = {},
+    } | void,
     { rejectWithValue },
   ) => {
     try {
       const searchParams = new URLSearchParams();
-      if (params.page) searchParams.append('page', params.page.toString());
-      if (params.limit) searchParams.append('limit', params.limit.toString());
-      if (params.published !== undefined)
+      if (params?.page) searchParams.append('page', params.page.toString());
+      if (params?.limit) searchParams.append('limit', params.limit.toString());
+      if (params?.published !== undefined)
         searchParams.append('published', params.published.toString());
-      if (params.tag) searchParams.append('tag', params.tag);
+      if (params?.tag) searchParams.append('tag', params.tag);
 
-      const accessToken = localStorage.getItem('accessToken');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/projects?${searchParams}`,
-        { headers },
-      );
+      const response = await apiFetch(`/projects?${searchParams}`);
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to fetch projects');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to fetch projects'),
+        );
       }
 
-      const data: PaginatedResponse<Project> = await response.json();
-      return {
-        data,
-        total: data.total,
-        page: data.page,
-        limit: data.limit,
-        totalPages: data.totalPages,
-      };
+      return normalizePaginated<Project>(await response.json());
     } catch (error) {
       console.log(error);
       return rejectWithValue('Network error');
@@ -59,23 +42,12 @@ export const fetchProjectById = createAsyncThunk(
   'projects/fetchProjectById',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/projects/${id}`,
-        { headers },
-      );
+      const response = await apiFetch(`/projects/${id}`);
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to fetch project');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to fetch project'),
+        );
       }
 
       const data: Project = await response.json();
@@ -91,26 +63,15 @@ export const createProject = createAsyncThunk(
   'project/createProject',
   async (newsData: Partial<Project>, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/projects`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify(newsData),
-        },
-      );
+      const response = await apiFetch('/projects', {
+        method: 'POST',
+        body: JSON.stringify(newsData),
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to create project');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to create project'),
+        );
       }
 
       const data: Project = await response.json();
@@ -129,26 +90,15 @@ export const updateProject = createAsyncThunk(
     { rejectWithValue },
   ) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/project/${id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify(newsData),
-        },
-      );
+      const response = await apiFetch(`/projects/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(newsData),
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to update project');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to update project'),
+        );
       }
 
       const data: Project = await response.json();
@@ -164,24 +114,14 @@ export const deleteProject = createAsyncThunk(
   'project/deleteProject',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/project/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
+      const response = await apiFetch(`/projects/${id}`, {
+        method: 'DELETE',
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to delete project');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to delete project'),
+        );
       }
 
       return id;
@@ -242,8 +182,6 @@ export const projectSlice = createSlice({
       })
       .addCase(fetchProjects.fulfilled, (state, action) => {
         state.loading = false;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         state.projectList = action.payload.data;
         state.pagination = {
           total: action.payload.total,

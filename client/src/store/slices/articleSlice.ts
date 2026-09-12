@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Article, PaginatedResponse } from '../../types';
+import { Article } from '../../types';
+import { apiFetch, normalizePaginated, readApiError } from '../../lib/api';
 
 // Async thunks
 export const fetchArticles = createAsyncThunk(
@@ -10,44 +11,26 @@ export const fetchArticles = createAsyncThunk(
       limit?: number;
       published?: boolean;
       tag?: string;
-    } = {},
+    } | void,
     { rejectWithValue },
   ) => {
     try {
       const searchParams = new URLSearchParams();
-      if (params.page) searchParams.append('page', params.page.toString());
-      if (params.limit) searchParams.append('limit', params.limit.toString());
-      if (params.published !== undefined)
+      if (params?.page) searchParams.append('page', params.page.toString());
+      if (params?.limit) searchParams.append('limit', params.limit.toString());
+      if (params?.published !== undefined)
         searchParams.append('published', params.published.toString());
-      if (params.tag) searchParams.append('tag', params.tag);
+      if (params?.tag) searchParams.append('tag', params.tag);
 
-      const accessToken = localStorage.getItem('accessToken');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/articles?${searchParams}`,
-        { headers },
-      );
+      const response = await apiFetch(`/articles?${searchParams}`);
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to fetch articles');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to fetch articles'),
+        );
       }
 
-      const data: PaginatedResponse<Article> = await response.json();
-      return {
-        data,
-        total: data.total,
-        page: data.page,
-        limit: data.limit,
-        totalPages: data.totalPages,
-      };
+      return normalizePaginated<Article>(await response.json());
     } catch (error) {
       console.log(error);
       return rejectWithValue('Network error');
@@ -59,23 +42,12 @@ export const fetchArticleById = createAsyncThunk(
   'articles/fetchArticleById',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/articles/${id}`,
-        { headers },
-      );
+      const response = await apiFetch(`/articles/${id}`);
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to fetch article');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to fetch article'),
+        );
       }
 
       const data: Article = await response.json();
@@ -91,26 +63,15 @@ export const createArticle = createAsyncThunk(
   'articles/createArticle',
   async (articlesData: Partial<Article>, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/articles`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify(articlesData),
-        },
-      );
+      const response = await apiFetch('/articles', {
+        method: 'POST',
+        body: JSON.stringify(articlesData),
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to create article');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to create article'),
+        );
       }
 
       const data: Article = await response.json();
@@ -129,26 +90,15 @@ export const updateArticle = createAsyncThunk(
     { rejectWithValue },
   ) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/articles/${id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify(articleData),
-        },
-      );
+      const response = await apiFetch(`/articles/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(articleData),
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to update article');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to update article'),
+        );
       }
 
       const data: Article = await response.json();
@@ -164,24 +114,14 @@ export const deleteArticle = createAsyncThunk(
   'articles/deleteArticle',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/articles/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
+      const response = await apiFetch(`/articles/${id}`, {
+        method: 'DELETE',
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to delete article');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to delete article'),
+        );
       }
 
       return id;
@@ -242,8 +182,6 @@ export const articleSlice = createSlice({
       })
       .addCase(fetchArticles.fulfilled, (state, action) => {
         state.loading = false;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         state.articlesList = action.payload.data;
         state.pagination = {
           total: action.payload.total,
