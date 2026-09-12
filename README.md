@@ -96,4 +96,4 @@ History was merged from:
 
 ## License
 
-See package READMEs. Licensing for the combined repository will be clarified in a follow-up.
+Unlicense license — Сreated by an anarchist for anarchists
