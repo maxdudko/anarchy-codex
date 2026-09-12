@@ -6,11 +6,13 @@ import Image from 'next/image';
 import Logo from '../../public/logo.png';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
+import { useAppSelector } from '@/store/hooks';
 
 const Navbar: FC = () => {
   const t = useTranslations();
   const params = useParams();
   const pathname = usePathname();
+  const { user, isAuthenticated, loading } = useAppSelector((state) => state.auth);
   const navigation = t.raw('navigation') as Array<{
     name: string;
     path: string;
@@ -60,6 +62,16 @@ const Navbar: FC = () => {
             <option value="ua">Ukrainian</option>
           </select>
         </div>
+        {!isAuthenticated && (
+          <div>
+            <Link
+              href="/login"
+              className="rounded border border-cyan-400 px-4 py-2 text-sm text-cyan-300 transition hover:bg-cyan-800 hover:text-white"
+            >
+              Login
+            </Link>
+          </div>
+        )}
       </div>
       <button
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -91,6 +103,16 @@ const Navbar: FC = () => {
               <option value="ua">Ukrainian</option>
             </select>
           </div>
+          {!isAuthenticated && (
+            <div>
+              <Link
+                href="/login"
+                className="rounded border border-cyan-400 px-4 py-2 text-sm text-cyan-300 transition hover:bg-cyan-800 hover:text-white"
+              >
+                Login
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>
