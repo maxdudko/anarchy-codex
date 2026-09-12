@@ -96,4 +96,4 @@ History was merged from:
 
 ## License
 
-Unlicense license — Сreated by an anarchist for anarchists
+Unlicensed — Сreated by an anarchist for anarchists
