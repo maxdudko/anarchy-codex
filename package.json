@@ -1,0 +1,14 @@
+{
+  "name": "anarchy-codex",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Anarchy Codex monorepo — Next.js client and NestJS server",
+  "scripts": {
+    "dev:client": "npm run dev --prefix client",
+    "dev:server": "npm run start:dev --prefix server",
+    "build:client": "npm run build --prefix client",
+    "build:server": "npm run build --prefix server",
+    "lint:client": "npm run lint --prefix client",
+    "lint:server": "npm run lint --prefix server"
+  }
+}
