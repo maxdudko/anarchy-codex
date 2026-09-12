@@ -4,19 +4,36 @@ import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import PageFrame from '@/components/PageFrame';
+import ListToolbar from '@/components/ListToolbar';
+import PaginationBar from '@/components/PaginationBar';
+import StatusBlock from '@/components/StatusBlock';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchEvents, selectEventsList } from '@/store/slices/eventsSlice';
+import {
+  fetchEvents,
+  selectEventsList,
+  selectEventsPagination,
+} from '@/store/slices/eventsSlice';
+import { LIST_PAGE_SIZE, useListFilters } from '@/lib/list';
 import { primaryBtnClass } from '@/lib/styles';
 
 export default function EventsPage() {
   const t = useTranslations();
   const dispatch = useAppDispatch();
   const events = useAppSelector(selectEventsList) || [];
+  const pagination = useAppSelector(selectEventsPagination);
+  const { loading, error } = useAppSelector((state) => state.events);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { page, q, setFilters } = useListFilters();
 
   useEffect(() => {
-    dispatch(fetchEvents());
-  }, [dispatch]);
+    dispatch(
+      fetchEvents({
+        page,
+        limit: LIST_PAGE_SIZE,
+        search: q || undefined,
+      }),
+    );
+  }, [dispatch, page, q]);
 
   return (
     <PageFrame>
@@ -34,8 +51,19 @@ export default function EventsPage() {
         )}
       </section>
       <section className="mx-auto max-w-5xl px-4">
-        {events.length === 0 ? (
-          <p className="text-pink-400">{t('actions.empty')}</p>
+        <ListToolbar
+          query={q}
+          showTags={false}
+          onSearch={(value) => setFilters({ q: value })}
+          onClear={() => setFilters({ q: '' })}
+        />
+        {loading || error || events.length === 0 ? (
+          <StatusBlock
+            loading={loading && events.length === 0}
+            error={error}
+            empty={!loading && events.length === 0}
+            hasFilters={Boolean(q)}
+          />
         ) : (
           <ul className="space-y-4">
             {events.map((event) => (
@@ -52,6 +80,11 @@ export default function EventsPage() {
             ))}
           </ul>
         )}
+        <PaginationBar
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={(next) => setFilters({ page: next })}
+        />
       </section>
     </PageFrame>
   );

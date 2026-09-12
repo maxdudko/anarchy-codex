@@ -12,7 +12,7 @@ import {
   fetchProjectById,
   selectCurrentProject,
 } from '@/store/slices/projectSlice';
-import { displayName, isOwner } from '@/lib/auth';
+import { canManage, displayName } from '@/lib/auth';
 import { dangerBtnClass, secondaryBtnClass } from '@/lib/styles';
 
 export default function ProjectPage() {
@@ -30,7 +30,7 @@ export default function ProjectPage() {
     }
   }, [dispatch, id]);
 
-  const owner = isOwner(user, project?.author);
+  const owner = canManage(user, project?.author);
 
   return (
     <PageFrame>

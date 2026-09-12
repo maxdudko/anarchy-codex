@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -13,6 +12,8 @@ import {
   parsePagination,
   toPaginated,
 } from '../common/utils/pagination';
+import { ListQuery, withListFilters } from '../common/utils/list-query';
+import { assertOwnerOrModerator } from '../common/utils/access';
 
 @Injectable()
 export class ArticlesService {
@@ -41,9 +42,14 @@ export class ArticlesService {
     publishedOnly: boolean = true,
     page?: number,
     limit?: number,
+    query?: ListQuery,
   ): Promise<PaginatedResult<Article>> {
     const pagination = parsePagination(page, limit);
-    const filter = publishedOnly ? { isPublished: true } : {};
+    const filter = withListFilters(
+      publishedOnly ? { isPublished: true } : {},
+      query,
+      ['title', 'summary', 'content', 'tags'],
+    );
     const [data, total] = await Promise.all([
       this.articleModel
         .find(filter)
@@ -82,6 +88,7 @@ export class ArticlesService {
     id: string,
     updateArticleDto: UpdateArticleDto,
     userId: string,
+    roles?: string[],
   ): Promise<Article> {
     const article = await this.articleModel.findById(id).exec();
 
@@ -89,10 +96,12 @@ export class ArticlesService {
       throw new NotFoundException('Article not found');
     }
 
-    // Check if user is the author or has moderator/admin role
-    if (article.author.toString() !== userId) {
-      throw new ForbiddenException('You can only edit your own articles');
-    }
+    assertOwnerOrModerator(
+      article.author,
+      userId,
+      roles,
+      'You can only edit your own articles',
+    );
 
     const updateData: any = { ...updateArticleDto };
 
@@ -113,17 +122,19 @@ export class ArticlesService {
     return updatedArticle;
   }
 
-  async remove(id: string, userId: string): Promise<void> {
+  async remove(id: string, userId: string, roles?: string[]): Promise<void> {
     const article = await this.articleModel.findById(id).exec();
 
     if (!article) {
       throw new NotFoundException('Article not found');
     }
 
-    // Check if user is the author or has moderator/admin role
-    if (article.author.toString() !== userId) {
-      throw new ForbiddenException('You can only delete your own articles');
-    }
+    assertOwnerOrModerator(
+      article.author,
+      userId,
+      roles,
+      'You can only delete your own articles',
+    );
 
     await this.articleModel.findByIdAndDelete(id).exec();
   }

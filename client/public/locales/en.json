@@ -199,46 +199,50 @@
     "browseEvents": "Browse members →",
     "projectsList": [
       {
-        "name": "🔍 Member Directory",
-        "description": "Find other codexers by interest, skills, or ideology blend.",
-        "btnText": "Browse members →",
-        "link": "/community/members"
+        "name": "Articles",
+        "description": "Read and publish essays on individualism, markets, and liberty.",
+        "btnText": "Browse articles →",
+        "link": "/articles"
       },
       {
-        "name": "🤝 Collaborative Projects",
-        "description": "Join or start decentralized projects from media to tech tools.",
+        "name": "Projects",
+        "description": "Join or start decentralized projects, from media to tech tools.",
         "btnText": "Explore projects →",
-        "link": "/community/projects/collaborative-projects"
+        "link": "/projects"
       },
       {
-        "name": "🌱 Initiatives & Campaigns",
-        "description": "Support or organize local actions, campaigns, and education hubs.",
-        "btnText": "Explore initiatives →",
-        "link": "/community/projects/initiatives-campaigns"
+        "name": "Events",
+        "description": "Meetups, talks, and working sessions. RSVP with your pseudonym.",
+        "btnText": "See events →",
+        "link": "/events"
       },
       {
-        "name": "💬 Discussion Groups",
-        "description": "Join groups focused on specific topics like philosophy, economics, and technology.",
-        "btnText": "Join discussion groups →",
-        "link": "/community/projects/discussion-groups"
+        "name": "Forum",
+        "description": "Debate ideas, share resources, and organize in public threads.",
+        "btnText": "Join the forum →",
+        "link": "/forum"
       },
       {
-        "name": "🚀 Tech & Tools",
-        "description": "Share and collaborate on open-source tools for freedom.",
-        "btnText": "Explore tech tools →",
-        "link": "/community/projects/tech-tools"
+        "name": "Library",
+        "description": "Upload and download literature, guides, and source texts.",
+        "btnText": "Open the library →",
+        "link": "/library"
       },
       {
-        "name": "🌎 Knowledge Base",
-        "description": "Access a library of resources, articles, and guides.",
-        "btnText": "Explore knowledge base →",
-        "link": "/community/projects/knowledge-base"
+        "name": "About the Codex",
+        "description": "How identity, privacy, and moderation work on this portal.",
+        "btnText": "Read about us →",
+        "link": "/about"
       }
     ]
   },
   "footer": {
-    "copyright": "© 2025 ANARCHY CODEX. Powered by freedom and code.",
-    "description": "Designed for decentralization and autonomy."
+    "copyright": "© 2026 ANARCHY CODEX. Powered by freedom and code.",
+    "description": "Designed for decentralization and autonomy.",
+    "about": "About",
+    "community": "Community",
+    "articles": "Articles",
+    "forum": "Forum"
   },
   "auth": {
     "login": "Login",
@@ -297,5 +301,38 @@
     "replies": "replies",
     "sourceAuthor": "Original author",
     "requiredFields": "Please fill in the required fields"
+  },
+  "list": {
+    "search": "Search",
+    "searchPlaceholder": "Search titles and text...",
+    "page": "Page",
+    "prev": "Previous",
+    "next": "Next",
+    "error": "Could not load this list.",
+    "loading": "Loading...",
+    "noResults": "No matching results.",
+    "clearFilters": "Clear filters"
+  },
+  "moderation": {
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "lock": "Lock",
+    "unlock": "Unlock",
+    "pinned": "Pinned",
+    "locked": "Locked"
+  },
+  "about": {
+    "title": "About Anarchy Codex",
+    "lead": "A privacy-oriented community portal for anarcho-individualist, anarcho-capitalist, and libertarian thought.",
+    "missionTitle": "Mission",
+    "mission": "Give people a place to publish, debate, and organize without requiring a legal name. The Codex is a library, a workshop, and a forum — not a social network of profiles.",
+    "identityTitle": "Pseudonym identity",
+    "identity": "You join with a pseudonym. That name is what others see on articles, threads, and events. Email is only for signing in.",
+    "privacyTitle": "Privacy",
+    "privacy": "We do not ask for real names, photos, or government IDs. Share as little as you want. Moderators can pin, lock, or remove abuse; they cannot rewrite who you are.",
+    "howTitle": "How to take part",
+    "how": "Read the library, publish articles and projects, RSVP to events, and talk in the forum. Members create content; moderators keep the commons usable.",
+    "communityCta": "Community map",
+    "forumCta": "Open the forum"
   }
 }

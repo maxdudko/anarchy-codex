@@ -11,7 +11,7 @@ import {
   selectCurrentProject,
   updateProject,
 } from '@/store/slices/projectSlice';
-import { isOwner, parseTags } from '@/lib/auth';
+import { canManage, parseTags } from '@/lib/auth';
 import { inputClass, primaryBtnClass } from '@/lib/styles';
 
 export default function EditProjectPage() {
@@ -42,7 +42,7 @@ export default function EditProjectPage() {
   }, [project, id]);
 
   useEffect(() => {
-    if (hydrated && ready && project && !isOwner(user, project.author)) {
+    if (hydrated && ready && project && !canManage(user, project.author)) {
       router.push(`/projects/${id}`);
     }
   }, [hydrated, ready, project, user, router, id]);

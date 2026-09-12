@@ -9,14 +9,16 @@ import ContentBody from '@/components/ContentBody';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
   createMessage,
+  deleteMessage,
   deleteThread,
   fetchMessages,
   fetchThreadById,
   likeMessage,
+  moderateThread,
   selectCurrentThread,
   selectMessages,
 } from '@/store/slices/forumSlice';
-import { displayName, getEntityId, isOwner } from '@/lib/auth';
+import { canManage, displayName, getEntityId, isModerator } from '@/lib/auth';
 import { dangerBtnClass, inputClass, primaryBtnClass, secondaryBtnClass } from '@/lib/styles';
 
 export default function ThreadPage() {
@@ -50,6 +52,9 @@ export default function ThreadPage() {
   const likedBy = (message: { likedBy?: string[]; likes?: string[] }) =>
     message.likedBy || message.likes || [];
 
+  const moderator = isModerator(user);
+  const canDeleteThread = canManage(user, thread?.author);
+
   return (
     <PageFrame>
       <section className="mx-auto max-w-3xl px-4 py-10">
@@ -57,6 +62,18 @@ export default function ThreadPage() {
           <p>{t('auth.loading')}</p>
         ) : (
           <>
+            <div className="mb-3 flex flex-wrap gap-2 text-xs">
+              {thread.isPinned && (
+                <span className="rounded border border-cyan-400 px-2 py-0.5 text-cyan-300">
+                  {t('moderation.pinned')}
+                </span>
+              )}
+              {thread.isLocked && (
+                <span className="rounded border border-pink-400 px-2 py-0.5 text-pink-300">
+                  {t('moderation.locked')}
+                </span>
+              )}
+            </div>
             <h1 className="text-3xl font-bold text-cyan-400">{thread.title}</h1>
             <p className="mt-2 text-sm text-gray-400">
               {displayName(thread.author)} · {new Date(thread.createdAt).toLocaleString()}
@@ -76,16 +93,30 @@ export default function ThreadPage() {
                       {displayName(message.author)} · {new Date(message.createdAt).toLocaleString()}
                     </p>
                     <p className="mt-2 whitespace-pre-wrap text-cyan-100">{message.content}</p>
-                    {isAuthenticated && (
-                      <button
-                        type="button"
-                        className="mt-3 text-sm text-cyan-400 hover:underline"
-                        onClick={() => dispatch(likeMessage(message._id))}
-                      >
-                        {liked ? t('actions.unlike') : t('actions.like')} (
-                        {message.likeCount ?? likes.length})
-                      </button>
-                    )}
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      {isAuthenticated && (
+                        <button
+                          type="button"
+                          className="text-sm text-cyan-400 hover:underline"
+                          onClick={() => dispatch(likeMessage(message._id))}
+                        >
+                          {liked ? t('actions.unlike') : t('actions.like')} (
+                          {message.likeCount ?? likes.length})
+                        </button>
+                      )}
+                      {canManage(user, message.author) && (
+                        <button
+                          type="button"
+                          className="text-sm text-pink-400 hover:underline"
+                          onClick={async () => {
+                            if (!window.confirm(t('actions.confirmDelete'))) return;
+                            await dispatch(deleteMessage(message._id));
+                          }}
+                        >
+                          {t('actions.delete')}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -103,7 +134,39 @@ export default function ThreadPage() {
               <Link href="/forum" className={secondaryBtnClass}>
                 {t('actions.back')}
               </Link>
-              {isOwner(user, thread.author) && (
+              {moderator && (
+                <>
+                  <button
+                    type="button"
+                    className={secondaryBtnClass}
+                    onClick={() =>
+                      dispatch(
+                        moderateThread({
+                          id: thread._id,
+                          isPinned: !thread.isPinned,
+                        }),
+                      )
+                    }
+                  >
+                    {thread.isPinned ? t('moderation.unpin') : t('moderation.pin')}
+                  </button>
+                  <button
+                    type="button"
+                    className={secondaryBtnClass}
+                    onClick={() =>
+                      dispatch(
+                        moderateThread({
+                          id: thread._id,
+                          isLocked: !thread.isLocked,
+                        }),
+                      )
+                    }
+                  >
+                    {thread.isLocked ? t('moderation.unlock') : t('moderation.lock')}
+                  </button>
+                </>
+              )}
+              {canDeleteThread && (
                 <button
                   type="button"
                   className={dangerBtnClass}

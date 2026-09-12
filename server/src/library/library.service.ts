@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -17,6 +16,8 @@ import {
   parsePagination,
   toPaginated,
 } from '../common/utils/pagination';
+import { ListQuery, withListFilters } from '../common/utils/list-query';
+import { assertOwnerOrModerator } from '../common/utils/access';
 
 @Injectable()
 export class LibraryService {
@@ -54,9 +55,14 @@ export class LibraryService {
     publicOnly: boolean = true,
     page?: number,
     limit?: number,
+    query?: ListQuery,
   ): Promise<PaginatedResult<LibraryFile>> {
     const pagination = parsePagination(page, limit);
-    const filter = publicOnly ? { isPublic: true } : {};
+    const filter = withListFilters(
+      publicOnly ? { isPublic: true } : {},
+      query,
+      ['title', 'description', 'sourceAuthor', 'tags'],
+    );
     const [data, total] = await Promise.all([
       this.libraryFileModel
         .find(filter)
@@ -103,6 +109,7 @@ export class LibraryService {
     id: string,
     updateLibraryFileDto: UpdateLibraryFileDto,
     userId: string,
+    roles?: string[],
   ): Promise<LibraryFile> {
     const libraryFile = await this.libraryFileModel.findById(id).exec();
 
@@ -110,10 +117,12 @@ export class LibraryService {
       throw new NotFoundException('Library file not found');
     }
 
-    // Check if user is the author or has moderator/admin role
-    if (libraryFile.author.toString() !== userId) {
-      throw new ForbiddenException('You can only edit your own files');
-    }
+    assertOwnerOrModerator(
+      libraryFile.author,
+      userId,
+      roles,
+      'You can only edit your own files',
+    );
 
     const updatedLibraryFile = await this.libraryFileModel
       .findByIdAndUpdate(id, updateLibraryFileDto, { new: true })
@@ -127,16 +136,23 @@ export class LibraryService {
     return updatedLibraryFile;
   }
 
-  async remove(id: string, userId: string): Promise<LibraryFile> {
+  async remove(
+    id: string,
+    userId: string,
+    roles?: string[],
+  ): Promise<LibraryFile> {
     const libraryFile = await this.libraryFileModel.findById(id).exec();
 
     if (!libraryFile) {
       throw new NotFoundException('Library file not found');
     }
 
-    if (libraryFile.author.toString() !== userId) {
-      throw new ForbiddenException('You can only delete your own files');
-    }
+    assertOwnerOrModerator(
+      libraryFile.author,
+      userId,
+      roles,
+      'You can only delete your own files',
+    );
 
     await this.libraryFileModel.findByIdAndDelete(id).exec();
     return libraryFile;

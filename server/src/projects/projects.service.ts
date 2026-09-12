@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -13,6 +12,8 @@ import {
   parsePagination,
   toPaginated,
 } from '../common/utils/pagination';
+import { ListQuery, withListFilters } from '../common/utils/list-query';
+import { assertOwnerOrModerator } from '../common/utils/access';
 
 @Injectable()
 export class ProjectsService {
@@ -41,9 +42,14 @@ export class ProjectsService {
     publishedOnly: boolean = true,
     page?: number,
     limit?: number,
+    query?: ListQuery,
   ): Promise<PaginatedResult<Project>> {
     const pagination = parsePagination(page, limit);
-    const filter = publishedOnly ? { isPublished: true } : {};
+    const filter = withListFilters(
+      publishedOnly ? { isPublished: true } : {},
+      query,
+      ['title', 'description', 'tags'],
+    );
     const [data, total] = await Promise.all([
       this.newsModel
         .find(filter)
@@ -82,6 +88,7 @@ export class ProjectsService {
     id: string,
     updateNewsDto: UpdateProjectDto,
     userId: string,
+    roles?: string[],
   ): Promise<Project> {
     const news = await this.newsModel.findById(id).exec();
 
@@ -89,10 +96,12 @@ export class ProjectsService {
       throw new NotFoundException('News not found');
     }
 
-    // Check if user is the author or has moderator/admin role
-    if (news.author.toString() !== userId) {
-      throw new ForbiddenException('You can only edit your own articles');
-    }
+    assertOwnerOrModerator(
+      news.author,
+      userId,
+      roles,
+      'You can only edit your own projects',
+    );
 
     const updateData: any = { ...updateNewsDto };
 
@@ -113,17 +122,19 @@ export class ProjectsService {
     return updatedNews;
   }
 
-  async remove(id: string, userId: string): Promise<void> {
+  async remove(id: string, userId: string, roles?: string[]): Promise<void> {
     const news = await this.newsModel.findById(id).exec();
 
     if (!news) {
       throw new NotFoundException('News not found');
     }
 
-    // Check if user is the author or has moderator/admin role
-    if (news.author.toString() !== userId) {
-      throw new ForbiddenException('You can only delete your own articles');
-    }
+    assertOwnerOrModerator(
+      news.author,
+      userId,
+      roles,
+      'You can only delete your own projects',
+    );
 
     await this.newsModel.findByIdAndDelete(id).exec();
   }

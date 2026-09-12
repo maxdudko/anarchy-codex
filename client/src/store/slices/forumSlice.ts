@@ -6,7 +6,13 @@ import { apiFetch, normalizePaginated, readApiError } from '../../lib/api';
 export const fetchThreads = createAsyncThunk(
   'forum/fetchThreads',
   async (
-    params: { page?: number; limit?: number; sort?: string } | void,
+    params: {
+      page?: number;
+      limit?: number;
+      sort?: string;
+      tag?: string;
+      search?: string;
+    } | void,
     { rejectWithValue },
   ) => {
     try {
@@ -14,6 +20,8 @@ export const fetchThreads = createAsyncThunk(
       if (params?.page) searchParams.append('page', params.page.toString());
       if (params?.limit) searchParams.append('limit', params.limit.toString());
       if (params?.sort) searchParams.append('sort', params.sort);
+      if (params?.tag) searchParams.append('tag', params.tag);
+      if (params?.search) searchParams.append('search', params.search);
 
       const response = await apiFetch(`/forum/threads?${searchParams}`);
 
@@ -83,26 +91,46 @@ export const updateThread = createAsyncThunk(
     { rejectWithValue },
   ) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/forum/threads/${id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify(threadData),
-        },
-      );
+      const response = await apiFetch(`/forum/threads/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(threadData),
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to update thread');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to update thread'),
+        );
+      }
+
+      const data: Thread = await response.json();
+      return data;
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue('Network error');
+    }
+  },
+);
+
+export const moderateThread = createAsyncThunk(
+  'forum/moderateThread',
+  async (
+    {
+      id,
+      isPinned,
+      isLocked,
+    }: { id: string; isPinned?: boolean; isLocked?: boolean },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await apiFetch(`/forum/threads/${id}/moderate`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isPinned, isLocked }),
+      });
+
+      if (!response.ok) {
+        return rejectWithValue(
+          await readApiError(response, 'Failed to moderate thread'),
+        );
       }
 
       const data: Thread = await response.json();
@@ -234,24 +262,14 @@ export const deleteMessage = createAsyncThunk(
   'forum/deleteMessage',
   async (id: string, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        return rejectWithValue('Authentication required');
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/forum/messages/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
+      const response = await apiFetch(`/forum/messages/${id}`, {
+        method: 'DELETE',
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to delete message');
+        return rejectWithValue(
+          await readApiError(response, 'Failed to delete message'),
+        );
       }
 
       return id;
@@ -401,6 +419,22 @@ export const forumSlice = createSlice({
       })
       .addCase(updateThread.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(moderateThread.fulfilled, (state, action) => {
+        const index = state.threads.findIndex(
+          (thread) => thread._id === action.payload._id,
+        );
+        if (index !== -1) {
+          state.threads[index] = action.payload;
+        }
+        if (state.currentThread?._id === action.payload._id) {
+          state.currentThread = action.payload;
+        }
+      })
+      .addCase(moderateThread.rejected, (state, action) => {
         state.error = action.payload as string;
       });
 

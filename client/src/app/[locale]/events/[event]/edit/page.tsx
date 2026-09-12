@@ -11,7 +11,7 @@ import {
   selectCurrentEvent,
   updateEvent,
 } from '@/store/slices/eventsSlice';
-import { isOwner, toDatetimeLocal } from '@/lib/auth';
+import { canManage, toDatetimeLocal } from '@/lib/auth';
 import { inputClass, primaryBtnClass } from '@/lib/styles';
 
 export default function EditEventPage() {
@@ -46,7 +46,7 @@ export default function EditEventPage() {
   }, [event, id]);
 
   useEffect(() => {
-    if (hydrated && event && event._id === id && !isOwner(user, event.organizer)) {
+    if (hydrated && event && event._id === id && !canManage(user, event.organizer)) {
       router.push(`/events/${id}`);
     }
   }, [hydrated, event, user, router, id]);

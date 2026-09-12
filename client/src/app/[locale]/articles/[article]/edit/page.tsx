@@ -12,7 +12,7 @@ import {
   selectCurrentArticle,
   updateArticle,
 } from '@/store/slices/articleSlice';
-import { htmlToText, isOwner, parseTags } from '@/lib/auth';
+import { canManage, htmlToText, parseTags } from '@/lib/auth';
 import { inputClass, primaryBtnClass } from '@/lib/styles';
 
 export default function EditArticlePage() {
@@ -52,7 +52,7 @@ export default function EditArticlePage() {
     if (!hydrated || !ready || !article) {
       return;
     }
-    if (!isOwner(user, article.author)) {
+    if (!canManage(user, article.author)) {
       router.push(`/articles/${id}`);
     }
   }, [hydrated, ready, article, user, router, id]);

@@ -13,6 +13,8 @@ import {
   parsePagination,
   toPaginated,
 } from '../common/utils/pagination';
+import { ListQuery, withListFilters } from '../common/utils/list-query';
+import { assertOwnerOrModerator } from '../common/utils/access';
 
 @Injectable()
 export class EventsService {
@@ -45,9 +47,14 @@ export class EventsService {
     publicOnly: boolean = true,
     page?: number,
     limit?: number,
+    query?: ListQuery,
   ): Promise<PaginatedResult<Event>> {
     const pagination = parsePagination(page, limit);
-    const filter = publicOnly ? { isPublic: true } : {};
+    const filter = withListFilters(
+      publicOnly ? { isPublic: true } : {},
+      query,
+      ['title', 'description', 'location'],
+    );
     const [data, total] = await Promise.all([
       this.eventModel
         .find(filter)
@@ -79,6 +86,7 @@ export class EventsService {
     id: string,
     updateEventDto: UpdateEventDto,
     userId: string,
+    roles?: string[],
   ): Promise<Event> {
     const event = await this.eventModel.findById(id).exec();
 
@@ -86,10 +94,12 @@ export class EventsService {
       throw new NotFoundException('Event not found');
     }
 
-    // Check if user is the organizer or has moderator/admin role
-    if (event.organizer.toString() !== userId) {
-      throw new ForbiddenException('You can only edit events you organized');
-    }
+    assertOwnerOrModerator(
+      event.organizer,
+      userId,
+      roles,
+      'You can only edit events you organized',
+    );
 
     const updateData: any = { ...updateEventDto };
 
@@ -113,17 +123,19 @@ export class EventsService {
     return updatedEvent;
   }
 
-  async remove(id: string, userId: string): Promise<void> {
+  async remove(id: string, userId: string, roles?: string[]): Promise<void> {
     const event = await this.eventModel.findById(id).exec();
 
     if (!event) {
       throw new NotFoundException('Event not found');
     }
 
-    // Check if user is the organizer or has moderator/admin role
-    if (event.organizer.toString() !== userId) {
-      throw new ForbiddenException('You can only delete events you organized');
-    }
+    assertOwnerOrModerator(
+      event.organizer,
+      userId,
+      roles,
+      'You can only delete events you organized',
+    );
 
     await this.eventModel.findByIdAndDelete(id).exec();
   }

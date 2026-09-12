@@ -1,4 +1,4 @@
-import { User } from '../types';
+import { User, UserRole } from '../types';
 
 export function getEntityId(
   value?: string | { _id?: string } | null,
@@ -32,6 +32,20 @@ export function isOwner(
     return false;
   }
   return user._id === getEntityId(author);
+}
+
+export function isModerator(user: User | null | undefined): boolean {
+  return Boolean(
+    user?.roles?.includes(UserRole.MODERATOR) ||
+      user?.roles?.includes(UserRole.ADMIN),
+  );
+}
+
+export function canManage(
+  user: User | null | undefined,
+  author?: string | { _id?: string } | null,
+): boolean {
+  return isOwner(user, author) || isModerator(user);
 }
 
 export function parseTags(value: string): string[] {

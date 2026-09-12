@@ -4,20 +4,39 @@ import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import PageFrame from '@/components/PageFrame';
+import ListToolbar from '@/components/ListToolbar';
+import PaginationBar from '@/components/PaginationBar';
+import StatusBlock from '@/components/StatusBlock';
+import TagChips from '@/components/TagChips';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchLibraryFiles, selectLibraryFiles } from '@/store/slices/librarySlice';
+import {
+  fetchLibraryFiles,
+  selectLibraryFiles,
+  selectLibraryPagination,
+} from '@/store/slices/librarySlice';
 import { displayName } from '@/lib/auth';
+import { LIST_PAGE_SIZE, useListFilters } from '@/lib/list';
 import { primaryBtnClass } from '@/lib/styles';
 
 export default function LibraryPage() {
   const t = useTranslations();
   const dispatch = useAppDispatch();
   const files = useAppSelector(selectLibraryFiles) || [];
+  const pagination = useAppSelector(selectLibraryPagination);
+  const { loading, error } = useAppSelector((state) => state.library);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { page, tag, q, setFilters } = useListFilters();
 
   useEffect(() => {
-    dispatch(fetchLibraryFiles());
-  }, [dispatch]);
+    dispatch(
+      fetchLibraryFiles({
+        page,
+        limit: LIST_PAGE_SIZE,
+        tag: tag || undefined,
+        search: q || undefined,
+      }),
+    );
+  }, [dispatch, page, tag, q]);
 
   return (
     <PageFrame>
@@ -35,8 +54,19 @@ export default function LibraryPage() {
         )}
       </section>
       <section className="mx-auto max-w-5xl px-4">
-        {files.length === 0 ? (
-          <p className="text-pink-400">{t('actions.empty')}</p>
+        <ListToolbar
+          query={q}
+          tag={tag}
+          onSearch={(value) => setFilters({ q: value })}
+          onClear={() => setFilters({ q: '', tag: null })}
+        />
+        {loading || error || files.length === 0 ? (
+          <StatusBlock
+            loading={loading && files.length === 0}
+            error={error}
+            empty={!loading && files.length === 0}
+            hasFilters={Boolean(q || tag)}
+          />
         ) : (
           <div className="grid gap-6 md:grid-cols-3">
             {files.map((book) => (
@@ -47,6 +77,7 @@ export default function LibraryPage() {
                     {book.sourceAuthor || displayName(book.author)}
                   </p>
                   <p className="text-sm text-cyan-200">{book.description}</p>
+                  <TagChips tags={book.tags} onSelect={(next) => setFilters({ tag: next })} />
                 </div>
                 <Link
                   href={`/library/${book._id}`}
@@ -58,6 +89,11 @@ export default function LibraryPage() {
             ))}
           </div>
         )}
+        <PaginationBar
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={(next) => setFilters({ page: next })}
+        />
       </section>
     </PageFrame>
   );

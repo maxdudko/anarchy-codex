@@ -11,6 +11,7 @@ export const fetchArticles = createAsyncThunk(
       limit?: number;
       published?: boolean;
       tag?: string;
+      search?: string;
     } | void,
     { rejectWithValue },
   ) => {
@@ -21,6 +22,7 @@ export const fetchArticles = createAsyncThunk(
       if (params?.published !== undefined)
         searchParams.append('published', params.published.toString());
       if (params?.tag) searchParams.append('tag', params.tag);
+      if (params?.search) searchParams.append('search', params.search);
 
       const response = await apiFetch(`/articles?${searchParams}`);
 

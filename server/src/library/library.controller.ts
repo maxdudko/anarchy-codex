@@ -50,9 +50,15 @@ export class LibraryController {
     @Query('publicOnly') publicOnly?: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
+    @Query('tag') tag?: string,
+    @Query('search') search?: string,
+    @Query('q') q?: string,
   ) {
     const isPublicOnly = publicOnly !== 'false';
-    return this.libraryService.findAll(isPublicOnly, page, limit);
+    return this.libraryService.findAll(isPublicOnly, page, limit, {
+      tag,
+      search: search || q,
+    });
   }
 
   @Get('search')
@@ -106,14 +112,23 @@ export class LibraryController {
     @Body() updateLibraryFileDto: UpdateLibraryFileDto,
     @Request() req,
   ) {
-    return this.libraryService.update(id, updateLibraryFileDto, req.user.id);
+    return this.libraryService.update(
+      id,
+      updateLibraryFileDto,
+      req.user.id,
+      req.user.roles,
+    );
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.MODERATOR, UserRole.ADMIN)
   async remove(@Param('id') id: string, @Request() req) {
-    const file = await this.libraryService.remove(id, req.user.id);
+    const file = await this.libraryService.remove(
+      id,
+      req.user.id,
+      req.user.roles,
+    );
     const dest = process.env.UPLOAD_DEST || './uploads';
     const filePath = join(dest, basename(file.filename));
     if (existsSync(filePath)) {

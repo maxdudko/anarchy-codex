@@ -10,6 +10,7 @@ export const fetchEvents = createAsyncThunk(
       page?: number;
       limit?: number;
       publicOnly?: boolean;
+      search?: string;
     } | void,
     { rejectWithValue },
   ) => {
@@ -19,6 +20,7 @@ export const fetchEvents = createAsyncThunk(
       if (params?.limit) searchParams.append('limit', params.limit.toString());
       if (params?.publicOnly !== undefined)
         searchParams.append('publicOnly', params.publicOnly.toString());
+      if (params?.search) searchParams.append('search', params.search);
 
       const response = await apiFetch(`/events?${searchParams}`);
 

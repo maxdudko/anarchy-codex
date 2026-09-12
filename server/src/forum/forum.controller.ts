@@ -15,6 +15,7 @@ import { CreateThreadDto } from './dto/create-thread.dto';
 import { UpdateThreadDto } from './dto/update-thread.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
+import { ModerateThreadDto } from './dto/moderate-thread.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -36,8 +37,14 @@ export class ForumController {
   findAllThreads(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
+    @Query('tag') tag?: string,
+    @Query('search') search?: string,
+    @Query('q') q?: string,
   ) {
-    return this.forumService.findAllThreads(page, limit);
+    return this.forumService.findAllThreads(page, limit, {
+      tag,
+      search: search || q,
+    });
   }
 
   @Get('threads/:id')
@@ -45,6 +52,21 @@ export class ForumController {
     const thread = await this.forumService.findThreadById(id);
     await this.forumService.incrementThreadViewCount(id);
     return thread;
+  }
+
+  @Patch('threads/:id/moderate')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.MODERATOR, UserRole.ADMIN)
+  moderateThread(
+    @Param('id') id: string,
+    @Body() moderateThreadDto: ModerateThreadDto,
+    @Request() req,
+  ) {
+    return this.forumService.moderateThread(
+      id,
+      moderateThreadDto,
+      req.user.roles,
+    );
   }
 
   @Patch('threads/:id')
@@ -55,14 +77,19 @@ export class ForumController {
     @Body() updateThreadDto: UpdateThreadDto,
     @Request() req,
   ) {
-    return this.forumService.updateThread(id, updateThreadDto, req.user.id);
+    return this.forumService.updateThread(
+      id,
+      updateThreadDto,
+      req.user.id,
+      req.user.roles,
+    );
   }
 
   @Delete('threads/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.MODERATOR, UserRole.ADMIN)
   removeThread(@Param('id') id: string, @Request() req) {
-    return this.forumService.removeThread(id, req.user.id);
+    return this.forumService.removeThread(id, req.user.id, req.user.roles);
   }
 
   // Message endpoints
@@ -99,14 +126,19 @@ export class ForumController {
     @Body() updateMessageDto: UpdateMessageDto,
     @Request() req,
   ) {
-    return this.forumService.updateMessage(id, updateMessageDto, req.user.id);
+    return this.forumService.updateMessage(
+      id,
+      updateMessageDto,
+      req.user.id,
+      req.user.roles,
+    );
   }
 
   @Delete('messages/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.MODERATOR, UserRole.ADMIN)
   removeMessage(@Param('id') id: string, @Request() req) {
-    return this.forumService.removeMessage(id, req.user.id);
+    return this.forumService.removeMessage(id, req.user.id, req.user.roles);
   }
 
   @Post('messages/:id/like')

@@ -181,46 +181,50 @@
     "browseEvents": "Browse members →",
     "projectsList": [
       {
-        "name": "🔍 Member Directory",
-        "description": "Find other codexers by interest, skills, or ideology blend.",
-        "btnText": "Browse members →",
-        "link": "/community/members"
+        "name": "Статьи",
+        "description": "Читайте и публикуйте тексты об индивидуализме, рынках и свободе.",
+        "btnText": "К статьям →",
+        "link": "/articles"
       },
       {
-        "name": "🤝 Collaborative Projects",
-        "description": "Join or start decentralized projects from media to tech tools.",
-        "btnText": "Explore projects →",
-        "link": "/community/projects/collaborative-projects"
+        "name": "Проекты",
+        "description": "Присоединяйтесь к децентрализованным проектам или запускайте свои.",
+        "btnText": "К проектам →",
+        "link": "/projects"
       },
       {
-        "name": "🌱 Initiatives & Campaigns",
-        "description": "Support or organize local actions, campaigns, and education hubs.",
-        "btnText": "Explore initiatives →",
-        "link": "/community/projects/initiatives-campaigns"
+        "name": "События",
+        "description": "Встречи, доклады и рабочие сессии. Запись под псевдонимом.",
+        "btnText": "К событиям →",
+        "link": "/events"
       },
       {
-        "name": "💬 Discussion Groups",
-        "description": "Join groups focused on specific topics like philosophy, economics, and technology.",
-        "btnText": "Join discussion groups →",
-        "link": "/community/projects/discussion-groups"
+        "name": "Форум",
+        "description": "Спорьте, делитесь источниками и организуйтесь в открытых темах.",
+        "btnText": "На форум →",
+        "link": "/forum"
       },
       {
-        "name": "🚀 Tech & Tools",
-        "description": "Share and collaborate on open-source tools for freedom.",
-        "btnText": "Explore tech tools →",
-        "link": "/community/projects/tech-tools"
+        "name": "Библиотека",
+        "description": "Загружайте и скачивайте литературу, гайды и первоисточники.",
+        "btnText": "В библиотеку →",
+        "link": "/library"
       },
       {
-        "name": "🌎 Knowledge Base",
-        "description": "Access a library of resources, articles, and guides.",
-        "btnText": "Explore knowledge base →",
-        "link": "/community/projects/knowledge-base"
+        "name": "О Кодексе",
+        "description": "Как на портале устроены личность, приватность и модерация.",
+        "btnText": "Читать →",
+        "link": "/about"
       }
     ]
   },
   "footer": {
-    "copyright": "© 2025 ANARCHY CODEX. Powered by freedom and code.",
-    "description": "Designed for decentralization and autonomy."
+    "copyright": "© 2026 ANARCHY CODEX. Свобода и код.",
+    "description": "Сделано для децентрализации и автономии.",
+    "about": "О проекте",
+    "community": "Сообщество",
+    "articles": "Статьи",
+    "forum": "Форум"
   },
   "auth": {
     "login": "Вход",
@@ -279,5 +283,38 @@
     "replies": "ответов",
     "sourceAuthor": "Автор оригинала",
     "requiredFields": "Заполните обязательные поля"
+  },
+  "list": {
+    "search": "Поиск",
+    "searchPlaceholder": "Поиск по заголовкам и тексту...",
+    "page": "Страница",
+    "prev": "Назад",
+    "next": "Вперёд",
+    "error": "Не удалось загрузить список.",
+    "loading": "Загрузка...",
+    "noResults": "Ничего не найдено.",
+    "clearFilters": "Сбросить фильтры"
+  },
+  "moderation": {
+    "pin": "Закрепить",
+    "unpin": "Открепить",
+    "lock": "Закрыть",
+    "unlock": "Открыть",
+    "pinned": "Закреплено",
+    "locked": "Закрыто"
+  },
+  "about": {
+    "title": "О Anarchy Codex",
+    "lead": "Приватный портал сообщества для анархо-индивидуалистской, анархо-капиталистической и либертарианской мысли.",
+    "missionTitle": "Миссия",
+    "mission": "Дать людям место публиковать, спорить и организовываться без юридического имени. Кодекс — библиотека, мастерская и форум, а не сеть профилей.",
+    "identityTitle": "Псевдоним",
+    "identity": "Вы входите под псевдонимом. Его видят на статьях, темах и событиях. Email нужен только для входа.",
+    "privacyTitle": "Приватность",
+    "privacy": "Мы не просим настоящих имён, фото или документов. Делитесь только тем, чем хотите. Модераторы могут закреплять, закрывать и удалять злоупотребления — но не переписывать, кто вы.",
+    "howTitle": "Как участвовать",
+    "how": "Читайте библиотеку, публикуйте статьи и проекты, записывайтесь на события и говорите на форуме. Участники создают содержание, модераторы держат общее пространство в порядке.",
+    "communityCta": "Карта сообщества",
+    "forumCta": "Открыть форум"
   }
 }

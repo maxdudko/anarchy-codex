@@ -16,6 +16,9 @@ import {
   parsePagination,
   toPaginated,
 } from '../common/utils/pagination';
+import { ListQuery, withListFilters } from '../common/utils/list-query';
+import { assertOwnerOrModerator, isModerator } from '../common/utils/access';
+import { ModerateThreadDto } from './dto/moderate-thread.dto';
 
 @Injectable()
 export class ForumService {
@@ -45,18 +48,20 @@ export class ForumService {
   async findAllThreads(
     page?: number,
     limit?: number,
+    query?: ListQuery,
   ): Promise<PaginatedResult<Thread>> {
     const pagination = parsePagination(page, limit);
+    const filter = withListFilters({}, query, ['title', 'content', 'tags']);
     const [data, total] = await Promise.all([
       this.threadModel
-        .find()
+        .find(filter)
         .populate('author', 'pseudonym avatar')
         .populate('lastMessage')
         .sort({ isPinned: -1, lastActivityAt: -1 })
         .skip(pagination.skip)
         .limit(pagination.limit)
         .exec(),
-      this.threadModel.countDocuments().exec(),
+      this.threadModel.countDocuments(filter).exec(),
     ]);
     return toPaginated(data, total, pagination.page, pagination.limit);
   }
@@ -79,6 +84,7 @@ export class ForumService {
     id: string,
     updateThreadDto: UpdateThreadDto,
     userId: string,
+    roles?: string[],
   ): Promise<Thread> {
     const thread = await this.threadModel.findById(id).exec();
 
@@ -86,13 +92,26 @@ export class ForumService {
       throw new NotFoundException('Thread not found');
     }
 
-    // Check if user is the author or has moderator/admin role
-    if (thread.author.toString() !== userId) {
-      throw new ForbiddenException('You can only edit your own threads');
+    assertOwnerOrModerator(
+      thread.author,
+      userId,
+      roles,
+      'You can only edit your own threads',
+    );
+
+    const { isPinned, isLocked, ...contentUpdate } = updateThreadDto;
+    const updateData: Record<string, unknown> = { ...contentUpdate };
+    if (isModerator(roles)) {
+      if (isPinned !== undefined) {
+        updateData.isPinned = isPinned;
+      }
+      if (isLocked !== undefined) {
+        updateData.isLocked = isLocked;
+      }
     }
 
     const updatedThread = await this.threadModel
-      .findByIdAndUpdate(id, updateThreadDto, { new: true })
+      .findByIdAndUpdate(id, updateData, { new: true })
       .populate('author', 'pseudonym avatar')
       .populate('lastMessage')
       .exec();
@@ -104,17 +123,23 @@ export class ForumService {
     return updatedThread;
   }
 
-  async removeThread(id: string, userId: string): Promise<void> {
+  async removeThread(
+    id: string,
+    userId: string,
+    roles?: string[],
+  ): Promise<void> {
     const thread = await this.threadModel.findById(id).exec();
 
     if (!thread) {
       throw new NotFoundException('Thread not found');
     }
 
-    // Check if user is the author or has moderator/admin role
-    if (thread.author.toString() !== userId) {
-      throw new ForbiddenException('You can only delete your own threads');
-    }
+    assertOwnerOrModerator(
+      thread.author,
+      userId,
+      roles,
+      'You can only delete your own threads',
+    );
 
     // Delete all messages in the thread first
     await this.messageModel
@@ -129,6 +154,28 @@ export class ForumService {
     await this.threadModel
       .findByIdAndUpdate(id, { $inc: { viewCount: 1 } })
       .exec();
+  }
+
+  async moderateThread(
+    id: string,
+    dto: ModerateThreadDto,
+    roles?: string[],
+  ): Promise<Thread> {
+    if (!isModerator(roles)) {
+      throw new ForbiddenException('Only moderators can pin or lock threads');
+    }
+
+    const thread = await this.threadModel
+      .findByIdAndUpdate(id, dto, { new: true })
+      .populate('author', 'pseudonym avatar')
+      .populate('lastMessage')
+      .exec();
+
+    if (!thread) {
+      throw new NotFoundException('Thread not found');
+    }
+
+    return thread;
   }
 
   // Message methods
@@ -200,6 +247,7 @@ export class ForumService {
     id: string,
     updateMessageDto: UpdateMessageDto,
     userId: string,
+    roles?: string[],
   ): Promise<Message> {
     const message = await this.messageModel.findById(id).exec();
 
@@ -207,10 +255,12 @@ export class ForumService {
       throw new NotFoundException('Message not found');
     }
 
-    // Check if user is the author or has moderator/admin role
-    if (message.author.toString() !== userId) {
-      throw new ForbiddenException('You can only edit your own messages');
-    }
+    assertOwnerOrModerator(
+      message.author,
+      userId,
+      roles,
+      'You can only edit your own messages',
+    );
 
     const updatedMessage = await this.messageModel
       .findByIdAndUpdate(
@@ -233,17 +283,23 @@ export class ForumService {
     return updatedMessage;
   }
 
-  async removeMessage(id: string, userId: string): Promise<void> {
+  async removeMessage(
+    id: string,
+    userId: string,
+    roles?: string[],
+  ): Promise<void> {
     const message = await this.messageModel.findById(id).exec();
 
     if (!message) {
       throw new NotFoundException('Message not found');
     }
 
-    // Check if user is the author or has moderator/admin role
-    if (message.author.toString() !== userId) {
-      throw new ForbiddenException('You can only delete your own messages');
-    }
+    assertOwnerOrModerator(
+      message.author,
+      userId,
+      roles,
+      'You can only delete your own messages',
+    );
 
     await this.messageModel
       .findByIdAndUpdate(id, {

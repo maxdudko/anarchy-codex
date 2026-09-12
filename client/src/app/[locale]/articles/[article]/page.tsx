@@ -12,7 +12,8 @@ import {
   fetchArticleById,
   selectCurrentArticle,
 } from '@/store/slices/articleSlice';
-import { displayName, isOwner } from '@/lib/auth';
+import { displayName, canManage } from '@/lib/auth';
+import TagChips from '@/components/TagChips';
 import { dangerBtnClass, secondaryBtnClass } from '@/lib/styles';
 
 export default function ArticlePage() {
@@ -30,7 +31,7 @@ export default function ArticlePage() {
     }
   }, [dispatch, id]);
 
-  const owner = isOwner(user, article?.author);
+  const owner = canManage(user, article?.author);
 
   return (
     <PageFrame>
@@ -45,6 +46,10 @@ export default function ArticlePage() {
               {new Date(article.createdAt).toLocaleString()}
             </p>
             <p className="mt-4 text-pink-400">{article.summary}</p>
+            <TagChips
+              tags={article.tags}
+              onSelect={(tag) => router.push(`/articles?tag=${encodeURIComponent(tag)}`)}
+            />
             <div className="mt-6">
               <ContentBody content={article.content} />
             </div>

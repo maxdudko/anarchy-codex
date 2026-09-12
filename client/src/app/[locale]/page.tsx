@@ -2,8 +2,7 @@
 
 import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import PageFrame from '@/components/PageFrame';
 import { Link } from '@/i18n/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchArticles, selectArticleList } from '@/store/slices/articleSlice';
@@ -18,14 +17,13 @@ export default function HomePage() {
   const events = useAppSelector(selectEventsList) || [];
 
   useEffect(() => {
-    dispatch(fetchArticles());
-    dispatch(fetchProjects());
-    dispatch(fetchEvents());
+    dispatch(fetchArticles({ limit: 3 }));
+    dispatch(fetchProjects({ limit: 3 }));
+    dispatch(fetchEvents({ limit: 3 }));
   }, [dispatch]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-black to-gray-900 font-mono text-cyan-300">
-      <Navbar />
+    <PageFrame>
       <section className="border-b border-cyan-500 px-6 py-16 text-center">
         <h2 className="mx-auto w-[540px] text-4xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(0,255,255,0.8)] md:text-5xl">
           {t('home.header.title')}
@@ -165,8 +163,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <Footer />
-    </main>
+    </PageFrame>
   );
 }

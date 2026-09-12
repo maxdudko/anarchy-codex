@@ -522,14 +522,43 @@ async function seed() {
     const AUTHOR_ID = user._id.toString();
     console.log(`Created admin user with ID: ${AUTHOR_ID}`);
 
+    const inferTags = (text: string): string[] => {
+      const hay = text.toLowerCase();
+      const tags = new Set<string>();
+      const rules: Array<[RegExp, string]> = [
+        [/individual/, 'individualism'],
+        [/ethic/, 'ethics'],
+        [/decentral/, 'decentralization'],
+        [/state/, 'state'],
+        [/libertar/, 'libertarianism'],
+        [/anarch/, 'anarchism'],
+        [/freedom|free /, 'freedom'],
+        [/market/, 'markets'],
+        [/educat|workshop/, 'education'],
+        [/open source|tool|tech/, 'technology'],
+        [/translat|literature/, 'literature'],
+      ];
+      for (const [pattern, tag] of rules) {
+        if (pattern.test(hay)) {
+          tags.add(tag);
+        }
+      }
+      if (tags.size === 0) {
+        tags.add('general');
+      }
+      return [...tags];
+    };
+
     console.log('Seeding articles, projects and events...');
     const updatedArticlesList = articlesList.map((article) => ({
       ...article,
       author: AUTHOR_ID,
+      tags: article.tags.length ? article.tags : inferTags(article.title),
     }));
     const updatedProjectsList = projectsList.map((project) => ({
       ...project,
       author: AUTHOR_ID,
+      tags: project.tags.length ? project.tags : inferTags(project.title),
     }));
     const updatedEventsList = eventsList.map((event) => ({
       ...event,

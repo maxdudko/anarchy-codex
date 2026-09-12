@@ -14,7 +14,7 @@ import {
   leaveEvent,
   selectCurrentEvent,
 } from '@/store/slices/eventsSlice';
-import { displayName, getEntityId, isOwner } from '@/lib/auth';
+import { canManage, displayName, getEntityId } from '@/lib/auth';
 import { dangerBtnClass, primaryBtnClass, secondaryBtnClass } from '@/lib/styles';
 
 export default function EventPage() {
@@ -30,7 +30,7 @@ export default function EventPage() {
     if (id) dispatch(fetchEventById(id));
   }, [dispatch, id]);
 
-  const owner = isOwner(user, event?.organizer);
+  const owner = canManage(user, event?.organizer);
   const attending = Boolean(
     user &&
       event?.attendees?.some((attendee) => getEntityId(attendee) === user._id),

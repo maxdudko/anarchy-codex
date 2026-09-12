@@ -34,9 +34,13 @@ export class EventsController {
     @Query('publicOnly') publicOnly?: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
+    @Query('search') search?: string,
+    @Query('q') q?: string,
   ) {
     const isPublicOnly = publicOnly !== 'false';
-    return this.eventsService.findAll(isPublicOnly, page, limit);
+    return this.eventsService.findAll(isPublicOnly, page, limit, {
+      search: search || q,
+    });
   }
 
   @Get(':id')
@@ -52,14 +56,19 @@ export class EventsController {
     @Body() updateEventDto: UpdateEventDto,
     @Request() req,
   ) {
-    return this.eventsService.update(id, updateEventDto, req.user.id);
+    return this.eventsService.update(
+      id,
+      updateEventDto,
+      req.user.id,
+      req.user.roles,
+    );
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.MODERATOR, UserRole.ADMIN)
   remove(@Param('id') id: string, @Request() req) {
-    return this.eventsService.remove(id, req.user.id);
+    return this.eventsService.remove(id, req.user.id, req.user.roles);
   }
 
   @Post(':id/join')

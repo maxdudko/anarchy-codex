@@ -3,24 +3,28 @@
 import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
 import PageFrame from '@/components/PageFrame';
+import TagChips from '@/components/TagChips';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
+  deleteLibraryFile,
   downloadFile,
   fetchLibraryFileById,
   selectCurrentLibraryFile,
 } from '@/store/slices/librarySlice';
-import { displayName } from '@/lib/auth';
-import { primaryBtnClass, secondaryBtnClass } from '@/lib/styles';
+import { canManage, displayName } from '@/lib/auth';
+import { dangerBtnClass, primaryBtnClass, secondaryBtnClass } from '@/lib/styles';
 
 export default function LibraryFilePage() {
   const params = useParams<{ book: string }>();
   const id = params.book;
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const t = useTranslations();
   const book = useAppSelector(selectCurrentLibraryFile);
   const error = useAppSelector((state) => state.library.error);
+  const { user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     if (id) dispatch(fetchLibraryFileById(id));
@@ -38,6 +42,7 @@ export default function LibraryFilePage() {
               {book.sourceAuthor || displayName(book.author)} · {book.format || book.mimeType}
             </p>
             <p className="mt-4 text-pink-400">{book.description}</p>
+            <TagChips tags={book.tags} />
             <p className="mt-2 text-sm text-gray-400">
               {t('actions.download')}: {book.downloadCount}
             </p>
@@ -53,6 +58,19 @@ export default function LibraryFilePage() {
               <Link href="/library" className={secondaryBtnClass}>
                 {t('actions.back')}
               </Link>
+              {canManage(user, book.author) && (
+                <button
+                  type="button"
+                  className={dangerBtnClass}
+                  onClick={async () => {
+                    if (!window.confirm(t('actions.confirmDelete'))) return;
+                    await dispatch(deleteLibraryFile(book._id));
+                    router.push('/library');
+                  }}
+                >
+                  {t('actions.delete')}
+                </button>
+              )}
             </div>
           </>
         )}

@@ -181,46 +181,50 @@
     "browseEvents": "Browse members →",
     "projectsList": [
       {
-        "name": "🔍 Member Directory",
-        "description": "Find other codexers by interest, skills, or ideology blend.",
-        "btnText": "Browse members →",
-        "link": "/community/members"
+        "name": "Статті",
+        "description": "Читайте й публікуйте тексти про індивідуалізм, ринки та свободу.",
+        "btnText": "До статей →",
+        "link": "/articles"
       },
       {
-        "name": "🤝 Collaborative Projects",
-        "description": "Join or start decentralized projects from media to tech tools.",
-        "btnText": "Explore projects →",
-        "link": "/community/projects/collaborative-projects"
+        "name": "Проєкти",
+        "description": "Приєднуйтесь до децентралізованих проєктів або запускайте свої.",
+        "btnText": "До проєктів →",
+        "link": "/projects"
       },
       {
-        "name": "🌱 Initiatives & Campaigns",
-        "description": "Support or organize local actions, campaigns, and education hubs.",
-        "btnText": "Explore initiatives →",
-        "link": "/community/projects/initiatives-campaigns"
+        "name": "Події",
+        "description": "Зустрічі, доповіді та робочі сесії. Запис під псевдонімом.",
+        "btnText": "До подій →",
+        "link": "/events"
       },
       {
-        "name": "💬 Discussion Groups",
-        "description": "Join groups focused on specific topics like philosophy, economics, and technology.",
-        "btnText": "Join discussion groups →",
-        "link": "/community/projects/discussion-groups"
+        "name": "Форум",
+        "description": "Сперечайтеся, діліться джерелами й організовуйтесь у відкритих темах.",
+        "btnText": "На форум →",
+        "link": "/forum"
       },
       {
-        "name": "🚀 Tech & Tools",
-        "description": "Share and collaborate on open-source tools for freedom.",
-        "btnText": "Explore tech tools →",
-        "link": "/community/projects/tech-tools"
+        "name": "Бібліотека",
+        "description": "Завантажуйте літературу, гіди та першоджерела.",
+        "btnText": "До бібліотеки →",
+        "link": "/library"
       },
       {
-        "name": "🌎 Knowledge Base",
-        "description": "Access a library of resources, articles, and guides.",
-        "btnText": "Explore knowledge base →",
-        "link": "/community/projects/knowledge-base"
+        "name": "Про Кодекс",
+        "description": "Як на порталі влаштовані особа, приватність і модерація.",
+        "btnText": "Читати →",
+        "link": "/about"
       }
     ]
   },
   "footer": {
-    "copyright": "© 2025 ANARCHY CODEX. Powered by freedom and code.",
-    "description": "Designed for decentralization and autonomy."
+    "copyright": "© 2026 ANARCHY CODEX. Свобода і код.",
+    "description": "Зроблено для децентралізації та автономії.",
+    "about": "Про проєкт",
+    "community": "Спільнота",
+    "articles": "Статті",
+    "forum": "Форум"
   },
   "auth": {
     "login": "Вхід",
@@ -279,5 +283,38 @@
     "replies": "відповідей",
     "sourceAuthor": "Автор оригіналу",
     "requiredFields": "Заповніть обов'язкові поля"
+  },
+  "list": {
+    "search": "Пошук",
+    "searchPlaceholder": "Пошук за заголовками та текстом...",
+    "page": "Сторінка",
+    "prev": "Назад",
+    "next": "Далі",
+    "error": "Не вдалося завантажити список.",
+    "loading": "Завантаження...",
+    "noResults": "Нічого не знайдено.",
+    "clearFilters": "Скинути фільтри"
+  },
+  "moderation": {
+    "pin": "Закріпити",
+    "unpin": "Відкріпити",
+    "lock": "Закрити",
+    "unlock": "Відкрити",
+    "pinned": "Закріплено",
+    "locked": "Закрито"
+  },
+  "about": {
+    "title": "Про Anarchy Codex",
+    "lead": "Приватний портал спільноти для анархо-індивідуалістської, анархо-капіталістичної та лібертаріанської думки.",
+    "missionTitle": "Місія",
+    "mission": "Дати людям місце публікувати, сперечатися й організовуватись без юридичного імені. Кодекс — бібліотека, майстерня і форум, а не мережа профілів.",
+    "identityTitle": "Псевдонім",
+    "identity": "Ви входите під псевдонімом. Його бачать на статтях, темах і подіях. Email потрібен лише для входу.",
+    "privacyTitle": "Приватність",
+    "privacy": "Ми не просимо справжніх імен, фото чи документів. Діліться лише тим, чим хочете. Модератори можуть закріплювати, закривати й прибирати зловживання — але не переписувати, хто ви.",
+    "howTitle": "Як брати участь",
+    "how": "Читайте бібліотеку, публікуйте статті й проєкти, записуйтесь на події та говоріть на форумі. Учасники створюють зміст, модератори тримають спільний простір у порядку.",
+    "communityCta": "Мапа спільноти",
+    "forumCta": "Відкрити форум"
   }
 }

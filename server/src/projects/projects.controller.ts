@@ -34,9 +34,15 @@ export class ProjectsController {
     @Query('published') published?: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
+    @Query('tag') tag?: string,
+    @Query('search') search?: string,
+    @Query('q') q?: string,
   ) {
     const publishedOnly = published !== 'false';
-    return this.projectsService.findAll(publishedOnly, page, limit);
+    return this.projectsService.findAll(publishedOnly, page, limit, {
+      tag,
+      search: search || q,
+    });
   }
 
   @Get('tag/:tag')
@@ -59,13 +65,18 @@ export class ProjectsController {
     @Body() updateNewsDto: UpdateProjectDto,
     @Request() req,
   ) {
-    return this.projectsService.update(id, updateNewsDto, req.user.id);
+    return this.projectsService.update(
+      id,
+      updateNewsDto,
+      req.user.id,
+      req.user.roles,
+    );
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER, UserRole.MODERATOR, UserRole.ADMIN)
   remove(@Param('id') id: string, @Request() req) {
-    return this.projectsService.remove(id, req.user.id);
+    return this.projectsService.remove(id, req.user.id, req.user.roles);
   }
 }
